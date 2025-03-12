@@ -17,6 +17,8 @@ process.env.NODE_ENV = 'test'
 import 'reflect-metadata'
 import { Ignitor, prettyPrintError } from '@adonisjs/core'
 import { configure, processCLIArgs, run } from '@japa/runner'
+import { browserClient } from '@japa/browser-client'
+import { chromium } from 'playwright'
 
 /**
  * URL to the application root. AdonisJS need it to resolve
@@ -55,7 +57,13 @@ new Ignitor(APP_ROOT, { importer: IMPORTER })
         setup: runnerHooks.setup,
         teardown: runnerHooks.teardown.concat([() => app.terminate()]),
       },
-      plugins: [expect(), apiClient('https://localhost:3333')],
+      plugins: [
+        expect(),
+        apiClient('https://localhost:3333'),
+        browserClient({
+          runInSuites: ['browser'],
+        }),
+      ],
     })
   })
   .run(() => run())
