@@ -9,6 +9,8 @@
 | command to run this file and monitor file changes.
 |
 */
+import { expect } from '@japa/expect'
+import { apiClient } from '@japa/api-client'
 
 process.env.NODE_ENV = 'test'
 
@@ -53,6 +55,7 @@ new Ignitor(APP_ROOT, { importer: IMPORTER })
         setup: runnerHooks.setup,
         teardown: runnerHooks.teardown.concat([() => app.terminate()]),
       },
+      plugins: [expect(), apiClient('https://localhost:3333')],
     })
   })
   .run(() => run())
