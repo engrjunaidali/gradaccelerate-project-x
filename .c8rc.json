@@ -1,0 +1,7 @@
+{
+  "include": ["app/**/*.ts"],
+  "exclude": ["node_modules", "public", "config", "bootstrap", "app/exceptions"],
+  "reporter": ["html", "text"],
+  "all": true,
+  "check-coverage": true
+}
