@@ -14,7 +14,8 @@
     "typecheck": "tsc --noEmit",
     "test:browser": "node ace test browser",
     "test:unit": "node ace test unit",
-    "test:functional": "playwright test -c playwright-ct.config.ts"
+    "test:functional": "playwright test -c playwright-ct.config.ts",
+    "test:report": "npx playwright show-report "
   },
   "imports": {
     "#controllers/*": "./app/controllers/*.js",
