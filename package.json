@@ -45,7 +45,7 @@
     "@japa/expect": "^3.0.3",
     "@japa/plugin-adonisjs": "^4.0.0",
     "@japa/runner": "^4.2.0",
-    "@swc/core": "^1.10.16",
+    "@swc/core": "^1.7.28",
     "@testing-library/jest-dom": "^6.6.3",
     "@testing-library/react": "^16.2.0",
     "@types/jest": "^29.5.14",
@@ -85,6 +85,7 @@
     "framer-motion": "^12.4.10",
     "lucide-react": "^0.479.0",
     "luxon": "^3.5.0",
+    "mysql2": "^3.14.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "reflect-metadata": "^0.2.2"
