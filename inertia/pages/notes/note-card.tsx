@@ -21,9 +21,6 @@ interface NoteCardProps {
   onDelete: (id: number) => void
   onEdit: (note: Note) => void
   onTogglePin: (id: number) => void
-  ReactMarkdown: typeof ReactMarkdown;
-  remarkGfm: typeof remarkGfm;
-  rehypeHighlight: typeof rehypeHighlight;
 }
 
 const getStatusColor = (status: string) => {

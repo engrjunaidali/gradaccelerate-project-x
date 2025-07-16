@@ -1,4 +1,4 @@
-import { Head, useForm, Link, router } from '@inertiajs/react'
+import { Head, useForm, Link, router, usePage } from '@inertiajs/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { PlusIcon, XIcon, ArrowLeft, ChevronLeftIcon, ChevronRightIcon, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
@@ -43,8 +43,9 @@ interface SortConfig {
   direction: SortDirection;
 }
 
-export default function Index({ notes: notesData }: { notes: NotesData }) {
-  const [notes, setNotes] = useState<Note[]>(notesData.data)
+export default function Index() {
+  const { notes: notesData } = usePage<{ notes: NotesData }>().props
+  
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [viewType, setViewType] = useState<ViewType>('grid')
   const [sortConfig, setSortConfig] = useState<SortConfig>({
@@ -56,92 +57,18 @@ export default function Index({ notes: notesData }: { notes: NotesData }) {
   const [isEditing, setIsEditing] = useState(false)
   const [editingNoteId, setEditingNoteId] = useState<number | null>(null)
 
-
-  const { data, setData, post, processing, reset } = useForm({
-    title: '',
-    content: '',
-    status: 'pending' as 'pending' | 'in-progress' | 'completed',
-    pinned: false
-  });
-
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const payload = {
-      title: data.title,
-      content: data.content,
-      status: data.status,
-      pinned: data.pinned,
-    };
-
-    if (isEditing && editingNoteId !== null) {
-      // Update note
-      router.put(`/notes/${editingNoteId}`, payload, {
-        onSuccess: () => {
-          setNotes(notes.map(note => note.id === editingNoteId ? { ...note, ...payload, updatedAt: new Date().toISOString() } : note))
-          resetForm()
-        },
-      });
-    } else {
-      // Create note
-      router.post('/notes', payload, {
-        onSuccess: () => {
-          const newNote: Note = {
-            id: Date.now(),
-            title: data.title,
-            content: data.content,
-            status: data.status,
-            pinned: data.pinned,
-            createdAt: new Date().toISOString(),
-            updatedAt: null,
-          };
-
-          setNotes([newNote, ...notes])
-          reset()
-          setIsFormVisible(false)
-        },
-      });
-    }
-  };
-
-  const resetForm = () => {
-    reset()
-    setIsEditing(false)
-    setEditingNoteId(null)
-    setIsFormVisible(false)
-  }
-
   const handleEdit = (note: Note) => {
-    setData({
-      title: note.title,
-      content: note.content,
-      status: note.status,
-      pinned: note.pinned,
-    })
     setIsEditing(true)
     setEditingNoteId(note.id)
     setIsFormVisible(true)
   }
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-      submit(e as any);
-    }
-  };
-
   // Delete a note
   const handleDelete = async (id: number) => {
-    // setIsDeleting(true)
 
     router.delete(`/notes/${id}`, {
       onSuccess: () => {
-        setNotes(notes.filter(note => note.id !== id))
         setDeleteConfirm(null)
-        // setIsDeleting(false)
-      },
-      onError: () => {
-        // setIsDeleting(false)
-        // Error will be handled by flash messages from the server
       }
     })
   }
@@ -158,13 +85,7 @@ export default function Index({ notes: notesData }: { notes: NotesData }) {
   }
 
   const handleTogglePin = (id: number) => {
-    router.patch(`/notes/${id}/toggle-pin`, {}, {
-      onSuccess: () => {
-        setNotes(notes.map(note =>
-          note.id === id ? { ...note, pinned: !note.pinned } : note
-        ))
-      }
-    })
+    router.patch(`/notes/${id}/toggle-pin`, {})
   }
 
   const handleSort = (field: SortField) => {
@@ -200,9 +121,6 @@ export default function Index({ notes: notesData }: { notes: NotesData }) {
     }
   }
 
-  useEffect(() => {
-    setNotes(notesData.data)
-  }, [notesData.data])
 
   return (
     <>
@@ -295,13 +213,18 @@ export default function Index({ notes: notesData }: { notes: NotesData }) {
                 className="overflow-hidden mb-8"
               >
                 <NoteForm
-                  data={data}
-                  setData={setData}
-                  submit={submit}
-                  processing={processing}
-                  handleKeyDown={handleKeyDown}
                   isEditing={isEditing}
-                  cancelEdit={isEditing ? resetForm : undefined}
+                  editingNote={editingNoteId ? notesData.data.find(n => n.id === editingNoteId) : undefined}
+                  onCancel={() => {
+                    setIsEditing(false)
+                    setEditingNoteId(null)
+                    setIsFormVisible(false)
+                  }}
+                  onSuccess={() => {
+                    setIsEditing(false)
+                    setEditingNoteId(null)
+                    setIsFormVisible(false)
+                  }}
                 />
               </motion.div>
             )}
@@ -317,7 +240,7 @@ export default function Index({ notes: notesData }: { notes: NotesData }) {
             }
           >
             <AnimatePresence>
-              {notes.map((note, index) => (
+              {notesData.data.map((note, index) => (
                 <motion.div
                   key={note.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -335,9 +258,6 @@ export default function Index({ notes: notesData }: { notes: NotesData }) {
                     onDelete={() => setDeleteConfirm(note.id)}
                     onEdit={() => handleEdit(note)}
                     onTogglePin={() => handleTogglePin(note.id)}
-                    ReactMarkdown={ReactMarkdown}
-                    remarkGfm={remarkGfm}
-                    rehypeHighlight={rehypeHighlight}
                   />
                 </motion.div>
 

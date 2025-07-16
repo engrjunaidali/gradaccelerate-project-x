@@ -2,29 +2,73 @@ import type React from "react"
 import { motion } from "framer-motion"
 import { SaveIcon, PinIcon, EyeIcon, EditIcon } from 'lucide-react'
 import { useState } from 'react'
+import { useForm, usePage } from '@inertiajs/react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
 
 interface NoteFormProps {
-  data: {
+  isEditing?: boolean
+  editingNote?: {
+    id: number
     title: string
     content: string
-    status: 'pending' | 'in-progress' | 'completed';
+    status: 'pending' | 'in-progress' | 'completed'
+    pinned: boolean
   }
-  setData: (field: string, value: string) => void
-  submit: (e: React.FormEvent) => void
-  processing: boolean
-  handleKeyDown: (e: React.KeyboardEvent) => void
-  isEditing: boolean
-  cancelEdit?: () => void
+  onCancel?: () => void
+  onSuccess?: () => void
 }
 
-export default function NoteForm({ data, setData, submit, processing, handleKeyDown, isEditing }: NoteFormProps) {
+interface PageProps {
+  flash?: {
+    success?: string
+    error?: string
+  }
+}
 
-  const [showPreview, setShowPreview] = useState(false)  // Add this line
+export default function NoteForm({
+  isEditing = false,
+  editingNote,
+  onCancel,
+  onSuccess
+}: NoteFormProps) {
+  const { flash } = usePage<PageProps>().props
 
+  const [showPreview, setShowPreview] = useState(false)
 
+  const { data, setData, post, put, processing, reset, errors } = useForm({
+    title: editingNote?.title || '',
+    content: editingNote?.content || '',
+    status: editingNote?.status || 'pending' as 'pending' | 'in-progress' | 'completed',
+    pinned: editingNote?.pinned || false
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (isEditing && editingNote) {
+      put(`/notes/${editingNote.id}`, {
+        onSuccess: () => {
+          onSuccess?.()
+          reset()
+        }
+      })
+    } else {
+      post('/notes', {
+        onSuccess: () => {
+          onSuccess?.()
+          reset()
+        }
+      })
+    }
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      handleSubmit(e)
+    }
+  }
   return (
     <motion.div
       className="bg-[#2C2C2E] rounded-xl p-6 backdrop-blur-lg border border-[#3A3A3C]"
@@ -46,7 +90,7 @@ export default function NoteForm({ data, setData, submit, processing, handleKeyD
           {showPreview ? 'Edit' : 'Preview'}
         </button>
       </div>
-      <form onSubmit={submit}>
+       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <motion.input
             whileFocus={{ scale: 1.01 }}
@@ -58,6 +102,9 @@ export default function NoteForm({ data, setData, submit, processing, handleKeyD
             className="w-full px-4 py-3 bg-[#3A3A3C] text-white placeholder-[#98989D] rounded-lg border-none focus:ring-2 focus:ring-[#0A84FF] focus:outline-none transition-all duration-200"
             required
           />
+          {errors.title && (
+            <p className="text-red-400 text-sm mt-1">{errors.title}</p>
+          )}
         </div>
         <div className="mb-4">
           {showPreview ? (
@@ -121,6 +168,9 @@ Examples:
             />
           )}
         </div>
+        {errors.content && (
+            <p className="text-red-400 text-sm mt-1">{errors.content}</p>
+          )}
 
         <div className="mb-4">
           <label className="block text-sm font-medium text-[#98989D] mb-2">
