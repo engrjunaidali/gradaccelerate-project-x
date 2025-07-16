@@ -11,6 +11,9 @@ export default class Note extends BaseModel {
   @column()
   declare content: string
 
+  @column()
+  public status: string = 'pending' // Default status
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
