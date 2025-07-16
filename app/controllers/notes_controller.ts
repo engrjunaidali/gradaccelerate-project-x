@@ -8,12 +8,35 @@ export default class NotesController {
   async index({ inertia, request }: HttpContext) {
     const page = request.input('page', 1)
     const perPage = 6
+    const sortField = request.input('sort', 'created_at')
+    const sortDirection = request.input('direction', 'desc')
 
-    const notes = await Note.query()
-      .orderBy('pinned', 'desc')
-      .orderBy('created_at', 'desc')
-      .paginate(page, perPage)
+    // Validate sort field
+    const allowedSortFields = ['created_at', 'updated_at', 'title']
+    const validSortField = allowedSortFields.includes(sortField) ? sortField : 'created_at'
+    const validSortDirection = ['asc', 'desc'].includes(sortDirection) ? sortDirection : 'desc'
 
+    let query = Note.query()
+
+    // Always sort pinned notes first, then by the selected field
+    if (validSortField === 'created_at') {
+      query = query
+        .orderBy('pinned', 'desc')
+        .orderBy('created_at', validSortDirection)
+    } else if (validSortField === 'updated_at') {
+      query = query
+        .orderBy('pinned', 'desc')
+        .orderBy('updated_at', validSortDirection)
+        .orderBy('created_at', 'desc') // Secondary sort
+    } else if (validSortField === 'title') {
+      query = query
+        .orderBy('pinned', 'desc')
+        .orderBy('title', validSortDirection)
+        .orderBy('created_at', 'desc') // Secondary sort
+    }
+
+    const notes = await query.paginate(page, perPage)
+    
     return inertia.render('notes/index', {
       notes: {
         data: notes.toJSON().data,

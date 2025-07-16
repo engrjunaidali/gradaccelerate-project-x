@@ -1,7 +1,7 @@
 import { Head, useForm, Link, router } from '@inertiajs/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
-import { PlusIcon, XIcon, ArrowLeft, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
+import { PlusIcon, XIcon, ArrowLeft, ChevronLeftIcon, ChevronRightIcon, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
 import NoteCard from './note-card'
 import NoteForm from './note-form'
 import ViewSwitcher from './view-switcher'
@@ -31,11 +31,22 @@ interface NotesData {
 }
 
 type ViewType = 'grid' | 'list'
+type SortField = 'created_at' | 'updated_at' | 'title'
+type SortDirection = 'asc' | 'desc'
+
+interface SortConfig {
+  field: SortField;
+  direction: SortDirection;
+}
 
 export default function Index({ notes: notesData }: { notes: NotesData }) {
   const [notes, setNotes] = useState<Note[]>(notesData.data)
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [viewType, setViewType] = useState<ViewType>('grid')
+  const [sortConfig, setSortConfig] = useState<SortConfig>({
+    field: 'created_at',
+    direction: 'desc'
+  })
 
   const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null)
   const [isEditing, setIsEditing] = useState(false)
@@ -132,7 +143,11 @@ export default function Index({ notes: notesData }: { notes: NotesData }) {
   }
 
   const handlePageChange = (page: number) => {
-    router.get('/notes', { page }, {
+    router.get('/notes', { 
+      page,
+      sort: sortConfig.field,      
+      direction: sortConfig.direction
+    }, {
       preserveState: true,
       preserveScroll: true
     })
@@ -146,6 +161,39 @@ export default function Index({ notes: notesData }: { notes: NotesData }) {
         ))
       }
     })
+  }
+
+  const handleSort = (field: SortField) => {
+    const newDirection = sortConfig.field === field && sortConfig.direction === 'desc' ? 'asc' : 'desc'
+    const newSortConfig = { field, direction: newDirection }
+    setSortConfig(newSortConfig)
+
+    router.get('/notes', {
+      page: notesData.meta.current_page,
+      sort: field,
+      direction: newDirection
+    }, {
+      preserveState: true,
+      preserveScroll: true
+    })
+  }
+
+  const getSortIcon = (field: SortField) => {
+    if (sortConfig.field !== field) {
+      return <ArrowUpDown size={14} className="text-[#98989D]" />
+    }
+    return sortConfig.direction === 'asc'
+      ? <ArrowUp size={14} className="text-[#0A84FF]" />
+      : <ArrowDown size={14} className="text-[#0A84FF]" />
+  }
+
+  const formatSortLabel = (field: SortField) => {
+    switch (field) {
+      case 'created_at': return 'Created'
+      case 'updated_at': return 'Updated'
+      case 'title': return 'Title'
+      default: return field
+    }
   }
 
   useEffect(() => {
@@ -192,6 +240,35 @@ export default function Index({ notes: notesData }: { notes: NotesData }) {
               </motion.button>
             </div>
           </motion.div>
+
+          {/* Sorting Controls */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mb-6"
+          >
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-[#98989D]">Sort by:</span>
+              <div className="flex gap-1">
+                {(['created_at', 'updated_at', 'title'] as SortField[]).map((field) => (
+                  <button
+                    key={field}
+                    onClick={() => handleSort(field)}
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors duration-200 ${
+                      sortConfig.field === field
+                        ? 'bg-[#0A84FF] text-white'
+                        : 'bg-[#2C2C2E] text-[#98989D] hover:bg-[#3A3A3C] hover:text-white'
+                    }`}
+                  >
+                    {formatSortLabel(field)}
+                    {getSortIcon(field)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </motion.div>
+
 
           <AnimatePresence>
             {isFormVisible && (
@@ -257,8 +334,6 @@ export default function Index({ notes: notesData }: { notes: NotesData }) {
                     onTogglePin={() => handleTogglePin(note.id)}
                   />
                 </motion.div>
-
-                // simple pagination
 
               ))}
             </AnimatePresence>
