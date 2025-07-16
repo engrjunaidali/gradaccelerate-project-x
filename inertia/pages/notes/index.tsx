@@ -1,14 +1,12 @@
 import { Head, useForm, Link, router, usePage } from '@inertiajs/react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { PlusIcon, XIcon, ArrowLeft, ChevronLeftIcon, ChevronRightIcon, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
-import ReactMarkdown from 'react-markdown'
-import remarkGfm from 'remark-gfm'
-import rehypeHighlight from 'rehype-highlight'
 import 'highlight.js/styles/github-dark.css'
 import NoteCard from './note-card'
 import NoteForm from './note-form'
 import ViewSwitcher from './view-switcher'
+import { PageProps as InertiaPageProps } from '@inertiajs/core'
 
 interface Note {
   id: number;
@@ -43,9 +41,19 @@ interface SortConfig {
   direction: SortDirection;
 }
 
+
+interface PageProps extends InertiaPageProps {
+  notes: NotesData;
+  currentSort: SortConfig;
+  flash?: {
+    success?: string;
+    error?: string;
+  };
+}
+
 export default function Index() {
-  const { notes: notesData } = usePage<{ notes: NotesData }>().props
-  
+  const { notes: notesData, currentSort, flash } = usePage<PageProps>().props
+
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [viewType, setViewType] = useState<ViewType>('grid')
   const [sortConfig, setSortConfig] = useState<SortConfig>({
@@ -64,9 +72,10 @@ export default function Index() {
   }
 
   // Delete a note
-  const handleDelete = async (id: number) => {
-
+  const handleDelete = (id: number) => {
     router.delete(`/notes/${id}`, {
+      preserveState: true,
+      preserveScroll: true,
       onSuccess: () => {
         setDeleteConfirm(null)
       }
@@ -85,7 +94,11 @@ export default function Index() {
   }
 
   const handleTogglePin = (id: number) => {
-    router.patch(`/notes/${id}/toggle-pin`, {})
+    router.patch(`/notes/${id}/toggle-pin`, {}, {
+      preserveState: true,
+      preserveScroll: true,
+      only: ['notes', 'flash']
+    })
   }
 
   const handleSort = (field: SortField) => {
@@ -163,6 +176,31 @@ export default function Index() {
             </div>
           </motion.div>
 
+          {/* Flash Messages */}
+          <AnimatePresence>
+            {flash?.success && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mb-4 p-3 bg-green-500/20 border border-green-500/50 rounded-lg text-green-300"
+              >
+                {flash.success}
+              </motion.div>
+            )}
+
+            {flash?.error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300"
+              >
+                {flash.error}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {/* Sorting Controls */}
           <motion.div
             initial={{ opacity: 0, y: -10 }}
@@ -178,8 +216,8 @@ export default function Index() {
                     key={field}
                     onClick={() => handleSort(field)}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors duration-200 ${sortConfig.field === field
-                        ? 'bg-[#0A84FF] text-white'
-                        : 'bg-[#2C2C2E] text-[#98989D] hover:bg-[#3A3A3C] hover:text-white'
+                      ? 'bg-[#0A84FF] text-white'
+                      : 'bg-[#2C2C2E] text-[#98989D] hover:bg-[#3A3A3C] hover:text-white'
                       }`}
                   >
                     {formatSortLabel(field)}

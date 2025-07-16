@@ -17,26 +17,15 @@ export default class NotesController {
     const validSortDirection = ['asc', 'desc'].includes(sortDirection) ? sortDirection : 'desc'
 
     let query = Note.query()
+      .orderBy('pinned', 'desc')
+      .orderBy(validSortField, validSortDirection)
 
-    // Always sort pinned notes first, then by the selected field
-    if (validSortField === 'created_at') {
-      query = query
-        .orderBy('pinned', 'desc')
-        .orderBy('created_at', validSortDirection)
-    } else if (validSortField === 'updated_at') {
-      query = query
-        .orderBy('pinned', 'desc')
-        .orderBy('updated_at', validSortDirection)
-        .orderBy('created_at', 'desc') // Secondary sort
-    } else if (validSortField === 'title') {
-      query = query
-        .orderBy('pinned', 'desc')
-        .orderBy('title', validSortDirection)
-        .orderBy('created_at', 'desc') // Secondary sort
+    if (validSortField !== 'created_at') {
+      query = query.orderBy('created_at', 'desc')
     }
 
     const notes = await query.paginate(page, perPage)
-    
+
     return inertia.render('notes/index', {
       notes: {
         data: notes.toJSON().data,
@@ -47,6 +36,10 @@ export default class NotesController {
           total: notes.total,
           from: (notes.currentPage - 1) * notes.perPage + 1,
           to: (notes.currentPage - 1) * notes.perPage + notes.toJSON().data.length
+        },
+        currentSort: {
+          field: validSortField,
+          direction: validSortDirection
         }
       }
     })
@@ -71,6 +64,7 @@ export default class NotesController {
       ...data,
       status: data.status || 'pending'
     })
+
     return response.redirect().back()
   }
 
