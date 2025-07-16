@@ -11,6 +11,7 @@ interface Note {
   title: string;
   content: string;
   status: 'pending' | 'in-progress' | 'completed';
+  pinned: boolean;
   createdAt: string;
   updatedAt: string | null;
 }
@@ -44,7 +45,8 @@ export default function Index({ notes: notesData }: { notes: NotesData }) {
   const { data, setData, post, processing, reset } = useForm({
     title: '',
     content: '',
-    status: 'pending' as 'pending' | 'in-progress' | 'completed'
+    status: 'pending' as 'pending' | 'in-progress' | 'completed',
+    pinned: false
   });
 
   const submit = (e: React.FormEvent) => {
@@ -54,7 +56,7 @@ export default function Index({ notes: notesData }: { notes: NotesData }) {
       title: data.title,
       content: data.content,
       status: data.status,
-
+      pinned: data.pinned,
     };
 
     if (isEditing && editingNoteId !== null) {
@@ -74,6 +76,7 @@ export default function Index({ notes: notesData }: { notes: NotesData }) {
             title: data.title,
             content: data.content,
             status: data.status,
+            pinned: data.pinned,
             createdAt: new Date().toISOString(),
             updatedAt: null,
           };
@@ -98,6 +101,7 @@ export default function Index({ notes: notesData }: { notes: NotesData }) {
       title: note.title,
       content: note.content,
       status: note.status,
+      pinned: note.pinned,
     })
     setIsEditing(true)
     setEditingNoteId(note.id)
@@ -131,6 +135,16 @@ export default function Index({ notes: notesData }: { notes: NotesData }) {
     router.get('/notes', { page }, {
       preserveState: true,
       preserveScroll: true
+    })
+  }
+
+  const handleTogglePin = (id: number) => {
+    router.patch(`/notes/${id}/toggle-pin`, {}, {
+      onSuccess: () => {
+        setNotes(notes.map(note =>
+          note.id === id ? { ...note, pinned: !note.pinned } : note
+        ))
+      }
     })
   }
 
@@ -240,6 +254,7 @@ export default function Index({ notes: notesData }: { notes: NotesData }) {
                     viewType={viewType}
                     onDelete={() => setDeleteConfirm(note.id)}
                     onEdit={() => handleEdit(note)}
+                    onTogglePin={() => handleTogglePin(note.id)}
                   />
                 </motion.div>
 

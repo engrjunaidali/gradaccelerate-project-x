@@ -5,15 +5,16 @@ export default class NotesController {
   /**
    * Display a list of notes
    */
-   async index({ inertia, request }: HttpContext) {
+  async index({ inertia, request }: HttpContext) {
     const page = request.input('page', 1)
     const perPage = 6
-    
+
     const notes = await Note.query()
+      .orderBy('pinned', 'desc')
       .orderBy('created_at', 'desc')
       .paginate(page, perPage)
 
-    return inertia.render('notes/index', { 
+    return inertia.render('notes/index', {
       notes: {
         data: notes.toJSON().data,
         meta: {
@@ -62,6 +63,28 @@ export default class NotesController {
     const data = request.only(['title', 'content', 'status'])
     await note.merge(data).save()
     return response.redirect().back()
+  }
+
+  async togglePin({ params, response, session }: HttpContext) {
+    try {
+      const note = await Note.find(params.id)
+      if (!note) {
+        session.flash('error', 'Note not found')
+        return response.redirect().back()
+      }
+
+      // Toggle the pinned status
+      note.pinned = !note.pinned
+      await note.save()
+
+      const message = note.pinned ? 'Note pinned successfully' : 'Note unpinned successfully'
+      session.flash('success', message)
+
+      return response.redirect().back()
+    } catch (error) {
+      session.flash('error', 'Failed to toggle pin status')
+      return response.redirect().back()
+    }
   }
 
   /**

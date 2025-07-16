@@ -1,11 +1,13 @@
 import { motion } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
+import { EditIcon, PinIcon } from 'lucide-react'
 
 interface Note {
   id: number;
   title: string;
   content: string;
   status: 'pending' | 'in-progress' | 'completed';
+  pinned: boolean;
   createdAt: string;
   updatedAt: string | null;
 }
@@ -15,6 +17,7 @@ interface NoteCardProps {
   viewType: 'grid' | 'list'
   onDelete: (id: number) => void
   onEdit: (note: Note) => void
+  onTogglePin: (id: number) => void
 }
 
 const getStatusColor = (status: string) => {
@@ -27,26 +30,43 @@ const getStatusColor = (status: string) => {
 }
 
 
-export default function NoteCard({ note, viewType, onDelete, onEdit }: NoteCardProps) {
+export default function NoteCard({ note, viewType, onDelete, onEdit, onTogglePin }: NoteCardProps) {
   const timeAgo = formatDistanceToNow(new Date(note.createdAt), { addSuffix: true })
 
   return (
     <motion.div
-      className={`relative overflow-hidden backdrop-blur-sm bg-[#2C2C2E]/80 border border-[#3A3A3C] ${viewType === 'grid' ? 'rounded-xl' : 'rounded-lg'
+      className={`group relative overflow-hidden backdrop-blur-sm bg-[#2C2C2E]/80 border ${viewType === 'grid' ? 'rounded-xl' : 'rounded-lg'
+        } ${note.pinned
+          ? 'border-yellow-500/50 ring-2 ring-yellow-500/30 shadow-yellow-500/20'
+          : 'border-[#3A3A3C]'
         }`}
       style={{
-        boxShadow: '0 4px 30px rgba(0, 0, 0, 0.1)',
+        boxShadow: note.pinned
+          ? '0 4px 30px rgba(234, 179, 8, 0.15), 0 0 0 1px rgba(234, 179, 8, 0.1)'
+          : '0 4px 30px rgba(0, 0, 0, 0.1)',
       }}
       whileHover={{ y: -2, scale: 1.01 }}
       whileTap={{ scale: 0.98 }}
       transition={{ duration: 0.2 }}
     >
+
+      {/* Pinned indicator stripe */}
+      {note.pinned ? (
+        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-yellow-400 to-yellow-600"></div>
+      ) : null}
+
       <div className={`p-5 ${viewType === 'list' ? 'flex items-center gap-4' : ''}`}>
         <div className={viewType === 'list' ? 'flex-1' : ''}>
-
           <div className="flex justify-between items-start mb-2">
-            <h2 className="text-lg font-medium text-white">{note.title}</h2>
-            {/* <span className="text-xs text-[#98989D]">{timeAgo}</span> */}
+            <div className="flex items-center gap-2">
+              <h2 className={`text-lg font-medium ${note.pinned ? 'text-yellow-100' : 'text-white'}`}>
+                {note.title}
+              </h2>
+              {note.pinned ? (
+                <PinIcon size={14} className="text-yellow-500" />
+              ) : null}
+            </div>
+            
           </div>
 
           <p className={`text-[#98989D] text-sm mb-2 ${viewType === 'grid' ? 'line-clamp-3' : 'line-clamp-1'}`}>
@@ -57,15 +77,27 @@ export default function NoteCard({ note, viewType, onDelete, onEdit }: NoteCardP
             {note.status}
           </div>
 
+          <span className="text-xs px-2 text-[#98989D]">{timeAgo}</span>
         </div>
-
-
       </div>
 
+      {/* Action buttons - visible on hover */}
       <div className="absolute top-2 right-2 flex gap-1 opacity-1 group-hover:opacity-100 transition-opacity duration-200">
 
 
-
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onTogglePin(note.id);
+          }}
+          className={`p-1.5 rounded-full transition-colors duration-200 ${note.pinned
+            ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30'
+            : 'bg-[#3A3A3C] text-[#98989D] hover:bg-yellow-500/20 hover:text-yellow-400'
+            }`}
+          title={note.pinned ? 'Unpin note' : 'Pin note'}
+        >
+          <PinIcon size={14} />
+        </button>
         <button
           onClick={(e) => {
             e.stopPropagation();

@@ -14,6 +14,9 @@ export default class Note extends BaseModel {
   @column()
   public status: string = 'pending' // Default status
 
+  @column()
+  declare pinned: boolean
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
