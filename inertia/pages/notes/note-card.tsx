@@ -1,6 +1,9 @@
 import { motion } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
 import { EditIcon, PinIcon } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'  // Add this import
+import remarkGfm from 'remark-gfm'  // Add this import
+import rehypeHighlight from 'rehype-highlight'
 
 interface Note {
   id: number;
@@ -18,6 +21,9 @@ interface NoteCardProps {
   onDelete: (id: number) => void
   onEdit: (note: Note) => void
   onTogglePin: (id: number) => void
+  ReactMarkdown: typeof ReactMarkdown;
+  remarkGfm: typeof remarkGfm;
+  rehypeHighlight: typeof rehypeHighlight;
 }
 
 const getStatusColor = (status: string) => {
@@ -66,12 +72,48 @@ export default function NoteCard({ note, viewType, onDelete, onEdit, onTogglePin
                 <PinIcon size={14} className="text-yellow-500" />
               ) : null}
             </div>
-            
+
           </div>
 
-          <p className={`text-[#98989D] text-sm mb-2 ${viewType === 'grid' ? 'line-clamp-3' : 'line-clamp-1'}`}>
-            {note.content}
-          </p>
+          <div className={`text-[#98989D] text-sm mb-2 ${viewType === 'grid' ? 'line-clamp-3' : 'line-clamp-2'}`}>
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              rehypePlugins={[rehypeHighlight]}
+              components={{
+                p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+                h1: ({ children }) => <h1 className="text-base font-bold mb-1 text-white">{children}</h1>,
+                h2: ({ children }) => <h2 className="text-sm font-semibold mb-1 text-white">{children}</h2>,
+                h3: ({ children }) => <h3 className="text-sm font-medium mb-1 text-white">{children}</h3>,
+                code: ({ inline, children, ...props }) =>
+                  inline ? (
+                    <code className="bg-[#3A3A3C] text-[#FF6B6B] px-1 py-0.5 rounded text-xs" {...props}>
+                      {children}
+                    </code>
+                  ) : (
+                    <code className="block bg-[#1C1C1E] text-[#E0E0E0] p-2 rounded text-xs overflow-x-auto" {...props}>
+                      {children}
+                    </code>
+                  ),
+                blockquote: ({ children }) => (
+                  <blockquote className="border-l-2 border-[#0A84FF] pl-2 italic text-[#B0B0B0]">
+                    {children}
+                  </blockquote>
+                ),
+                ul: ({ children }) => <ul className="list-disc list-inside space-y-1">{children}</ul>,
+                ol: ({ children }) => <ol className="list-decimal list-inside space-y-1">{children}</ol>,
+                li: ({ children }) => <li className="text-[#98989D]">{children}</li>,
+                strong: ({ children }) => <strong className="text-white font-semibold">{children}</strong>,
+                em: ({ children }) => <em className="text-[#B0B0B0] italic">{children}</em>,
+                a: ({ children, href }) => (
+                  <a href={href} className="text-[#0A84FF] hover:text-[#0A74FF] underline" target="_blank" rel="noopener noreferrer">
+                    {children}
+                  </a>
+                ),
+              }}
+            >
+              {note.content}
+            </ReactMarkdown>
+          </div>
 
           <div className={`inline-block px-2 py-1 rounded-full text-xs ${getStatusColor(note.status ?? '')}`}>
             {note.status}

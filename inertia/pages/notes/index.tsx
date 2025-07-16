@@ -2,6 +2,10 @@ import { Head, useForm, Link, router } from '@inertiajs/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect } from 'react'
 import { PlusIcon, XIcon, ArrowLeft, ChevronLeftIcon, ChevronRightIcon, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeHighlight from 'rehype-highlight'
+import 'highlight.js/styles/github-dark.css'
 import NoteCard from './note-card'
 import NoteForm from './note-form'
 import ViewSwitcher from './view-switcher'
@@ -143,9 +147,9 @@ export default function Index({ notes: notesData }: { notes: NotesData }) {
   }
 
   const handlePageChange = (page: number) => {
-    router.get('/notes', { 
+    router.get('/notes', {
       page,
-      sort: sortConfig.field,      
+      sort: sortConfig.field,
       direction: sortConfig.direction
     }, {
       preserveState: true,
@@ -255,11 +259,10 @@ export default function Index({ notes: notesData }: { notes: NotesData }) {
                   <button
                     key={field}
                     onClick={() => handleSort(field)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors duration-200 ${
-                      sortConfig.field === field
+                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors duration-200 ${sortConfig.field === field
                         ? 'bg-[#0A84FF] text-white'
                         : 'bg-[#2C2C2E] text-[#98989D] hover:bg-[#3A3A3C] hover:text-white'
-                    }`}
+                      }`}
                   >
                     {formatSortLabel(field)}
                     {getSortIcon(field)}
@@ -332,6 +335,9 @@ export default function Index({ notes: notesData }: { notes: NotesData }) {
                     onDelete={() => setDeleteConfirm(note.id)}
                     onEdit={() => handleEdit(note)}
                     onTogglePin={() => handleTogglePin(note.id)}
+                    ReactMarkdown={ReactMarkdown}
+                    remarkGfm={remarkGfm}
+                    rehypeHighlight={rehypeHighlight}
                   />
                 </motion.div>
 

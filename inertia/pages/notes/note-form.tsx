@@ -1,5 +1,10 @@
 import type React from "react"
 import { motion } from "framer-motion"
+import { SaveIcon, PinIcon, EyeIcon, EditIcon } from 'lucide-react'
+import { useState } from 'react'
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeHighlight from 'rehype-highlight'
 
 interface NoteFormProps {
   data: {
@@ -16,14 +21,31 @@ interface NoteFormProps {
 }
 
 export default function NoteForm({ data, setData, submit, processing, handleKeyDown, isEditing }: NoteFormProps) {
+
+  const [showPreview, setShowPreview] = useState(false)  // Add this line
+
+
   return (
     <motion.div
       className="bg-[#2C2C2E] rounded-xl p-6 backdrop-blur-lg border border-[#3A3A3C]"
       style={{ boxShadow: "0 10px 30px rgba(0, 0, 0, 0.25)" }}
     >
-      <h2 className="text-xl font-semibold text-white mb-4">
-        {isEditing ? 'Edit Note' : 'New Note'}
-      </h2>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold text-white">
+          {isEditing ? 'Edit Note' : 'New Note'}
+        </h2>
+        <button
+          type="button"
+          onClick={() => setShowPreview(!showPreview)}
+          className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors ${showPreview
+            ? 'bg-[#0A84FF] text-white'
+            : 'bg-[#3A3A3C] text-[#98989D] hover:bg-[#4A4A4C]'
+            }`}
+        >
+          {showPreview ? <EditIcon size={14} /> : <EyeIcon size={14} />}
+          {showPreview ? 'Edit' : 'Preview'}
+        </button>
+      </div>
       <form onSubmit={submit}>
         <div className="mb-4">
           <motion.input
@@ -38,16 +60,66 @@ export default function NoteForm({ data, setData, submit, processing, handleKeyD
           />
         </div>
         <div className="mb-4">
-          <motion.textarea
-            whileFocus={{ scale: 1.01 }}
-            transition={{ duration: 0.2 }}
-            value={data.content}
-            onChange={(e) => setData("content", e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Note content"
-            className="w-full px-4 py-3 bg-[#3A3A3C] text-white placeholder-[#98989D] rounded-lg border-none focus:ring-2 focus:ring-[#0A84FF] focus:outline-none min-h-[120px] transition-all duration-200"
-            required
-          />
+          {showPreview ? (
+            <div className="min-h-[120px] bg-[#3A3A3C] rounded-lg p-4 border border-[#3A3A3C]">
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                rehypePlugins={[rehypeHighlight]}
+                components={{
+                  p: ({ children }) => <p className="mb-2 last:mb-0 text-white">{children}</p>,
+                  h1: ({ children }) => <h1 className="text-xl font-bold mb-2 text-white">{children}</h1>,
+                  h2: ({ children }) => <h2 className="text-lg font-semibold mb-2 text-white">{children}</h2>,
+                  h3: ({ children }) => <h3 className="text-base font-medium mb-1 text-white">{children}</h3>,
+                  code: ({ inline, children, ...props }) =>
+                    inline ? (
+                      <code className="bg-[#1C1C1E] text-[#FF6B6B] px-1 py-0.5 rounded text-sm" {...props}>
+                        {children}
+                      </code>
+                    ) : (
+                      <code className="block bg-[#1C1C1E] text-[#E0E0E0] p-3 rounded text-sm overflow-x-auto" {...props}>
+                        {children}
+                      </code>
+                    ),
+                  blockquote: ({ children }) => (
+                    <blockquote className="border-l-4 border-[#0A84FF] pl-4 italic text-[#B0B0B0] my-2">
+                      {children}
+                    </blockquote>
+                  ),
+                  ul: ({ children }) => <ul className="list-disc list-inside space-y-1 text-white">{children}</ul>,
+                  ol: ({ children }) => <ol className="list-decimal list-inside space-y-1 text-white">{children}</ol>,
+                  li: ({ children }) => <li className="text-white">{children}</li>,
+                  strong: ({ children }) => <strong className="text-white font-semibold">{children}</strong>,
+                  em: ({ children }) => <em className="text-[#B0B0B0] italic">{children}</em>,
+                  a: ({ children, href }) => (
+                    <a href={href} className="text-[#0A84FF] hover:text-[#0A74FF] underline" target="_blank" rel="noopener noreferrer">
+                      {children}
+                    </a>
+                  ),
+                }}
+              >
+                {data.content || '*No content to preview*'}
+              </ReactMarkdown>
+            </div>
+          ) : (
+            <motion.textarea
+              whileFocus={{ scale: 1.01 }}
+              transition={{ duration: 0.2 }}
+              value={data.content}
+              onChange={(e) => setData("content", e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder="Write your note... (Markdown supported)
+
+Examples:
+# Heading
+**Bold text**
+*Italic text*
+- List item
+`code`
+[Link](https://example.com)"
+              className="w-full px-4 py-3 bg-[#3A3A3C] text-white placeholder-[#98989D] rounded-lg border-none focus:ring-2 focus:ring-[#0A84FF] focus:outline-none min-h-[120px] transition-all duration-200 font-mono"
+              required
+            />
+          )}
         </div>
 
         <div className="mb-4">
@@ -81,7 +153,7 @@ export default function NoteForm({ data, setData, submit, processing, handleKeyD
           }
         </motion.button>
         <p className="text-center text-sm text-[#98989D] mt-2">
-          Hit {navigator.platform?.includes("Mac") ? "⌘" : "Ctrl"} + Enter to add note
+          Hit {navigator.platform?.includes("Mac") ? "⌘" : "Ctrl"} + Enter to {isEditing ? "update" : "add"} note • Toggle preview to see Markdown rendering
         </p>
       </form>
     </motion.div>
