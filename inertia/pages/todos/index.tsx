@@ -10,6 +10,7 @@ interface Todo {
   id: number;
   title: string;
   content: string;
+  labels: string[];
   createdAt: string;
   updatedAt: string | null;
 }
@@ -23,7 +24,8 @@ export default function Index({ todos: initialTodos }: { todos: Todo[] }) {
   const [viewType, setViewType] = useState<ViewType>('grid')
   const { data, setData, post, put, processing, reset } = useForm({
     title: '',
-    content: ''
+    content: '',
+    labels: [] as string[]
   });
 
   const submit = (e: React.FormEvent) => {
@@ -35,6 +37,7 @@ export default function Index({ todos: initialTodos }: { todos: Todo[] }) {
         ...editingTodo,
         title: data.title,
         content: data.content,
+        labels: data.labels,
         updatedAt: new Date().toISOString()
       }
 
@@ -55,6 +58,7 @@ export default function Index({ todos: initialTodos }: { todos: Todo[] }) {
         id: Date.now(),
         title: data.title,
         content: data.content,
+        labels: data.labels,
         createdAt: new Date().toISOString(),
         updatedAt: null
       }
@@ -74,7 +78,8 @@ export default function Index({ todos: initialTodos }: { todos: Todo[] }) {
     setEditingTodo(todo)
     setData({
       title: todo.title,
-      content: todo.content
+      content: todo.content,
+      labels: todo.labels || []
     })
     setIsFormVisible(true)
   };

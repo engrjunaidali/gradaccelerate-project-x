@@ -11,9 +11,25 @@ export default class Todo extends BaseModel {
   @column()
   declare content: string
 
+  @column({
+    serialize: (value: string | null) => {
+      if (!value) return null
+      try {
+        return JSON.parse(value)
+      } catch {
+        return []
+      }
+    },
+    prepare: (value: string[] | null) => {
+      if (!value || !Array.isArray(value)) return null
+      return JSON.stringify(value)
+    }
+  })
+  declare labels: string[] | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
-} 
+}

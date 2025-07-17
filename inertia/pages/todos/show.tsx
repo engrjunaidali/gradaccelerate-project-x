@@ -8,6 +8,8 @@ interface Todo {
   id: number;
   title: string;
   content: string;
+  labels: string[] | null
+
   createdAt: string;
   updatedAt: string | null;
 }
@@ -38,7 +40,7 @@ export default function Show({ todo }: { todo: Todo }) {
               </Link>
               <h1 className="text-2xl font-bold">Todo Details</h1>
             </div>
-            
+
           </motion.div>
 
           <motion.div
@@ -50,13 +52,26 @@ export default function Show({ todo }: { todo: Todo }) {
             <h2 className="text-3xl font-bold text-white mb-6 break-words">
               {todo.title}
             </h2>
-            
+
             <div className="prose prose-invert max-w-none mb-8">
               <p className="text-gray-300 text-lg leading-relaxed whitespace-pre-wrap">
                 {todo.content}
               </p>
             </div>
-            
+
+            {Array.isArray(todo.labels) && todo.labels.length > 0 && (
+              <div className="flex flex-wrap gap-2 my-3">
+                {todo.labels.map((label, i) => (
+                  <span
+                    key={i}
+                    className="bg-[#48484A] text-gray-200 text-xs px-2 py-0.5 rounded-full"
+                  >
+                    {label}
+                  </span>
+                ))}
+              </div>
+            )}
+
             <div className="border-t border-[#3A3A3C] pt-6">
               <div className="flex flex-col sm:flex-row gap-4 text-sm text-gray-400">
                 <div className="flex items-center gap-2">
@@ -65,7 +80,7 @@ export default function Show({ todo }: { todo: Todo }) {
                     Created: {formatDate(todo.createdAt)}
                   </span>
                 </div>
-                
+
                 {todo.updatedAt && (
                   <div className="flex items-center gap-2">
                     <Clock size={16} />
