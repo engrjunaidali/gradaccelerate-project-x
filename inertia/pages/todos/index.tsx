@@ -11,6 +11,7 @@ interface Todo {
   title: string;
   content: string;
   labels: string[];
+  imageUrl: string;
   createdAt: string;
   updatedAt: string | null;
 }
@@ -25,7 +26,8 @@ export default function Index({ todos: initialTodos }: { todos: Todo[] }) {
   const { data, setData, post, put, processing, reset } = useForm({
     title: '',
     content: '',
-    labels: [] as string[]
+    labels: [] as string[],
+    imageUrl: ''
   });
 
   const submit = (e: React.FormEvent) => {
@@ -38,6 +40,7 @@ export default function Index({ todos: initialTodos }: { todos: Todo[] }) {
         title: data.title,
         content: data.content,
         labels: data.labels,
+        imageUrl: data.imageUrl,
         updatedAt: new Date().toISOString()
       }
 
@@ -59,6 +62,7 @@ export default function Index({ todos: initialTodos }: { todos: Todo[] }) {
         title: data.title,
         content: data.content,
         labels: data.labels,
+        imageUrl: data.imageUrl,
         createdAt: new Date().toISOString(),
         updatedAt: null
       }
@@ -79,7 +83,8 @@ export default function Index({ todos: initialTodos }: { todos: Todo[] }) {
     setData({
       title: todo.title,
       content: todo.content,
-      labels: todo.labels || []
+      labels: todo.labels || [],
+      imageUrl: todo.imageUrl
     })
     setIsFormVisible(true)
   };

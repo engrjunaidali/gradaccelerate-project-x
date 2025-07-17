@@ -8,6 +8,7 @@ interface Todo {
   title: string
   content: string
   labels: string[] | null
+  imageUrl: string
   createdAt: string
   updatedAt: string | null
 }
@@ -52,6 +53,17 @@ export default function TodoCard({ todo, viewType, onEdit, onDelete }: TodoCardP
             {todo.updatedAt && ` • Updated ${formatDate(todo.updatedAt)}`}
           </span>
         </div>
+
+        
+        {todo.imageUrl && todo.imageUrl !== '' && (
+          <img
+            src={todo.imageUrl}
+            alt="Preview"
+            className="rounded-lg w-32 h-32 object-cover border border-gray-700"
+            style={{ maxWidth: 128, maxHeight: 128 }}
+          />
+        )}
+
 
         {/* Show labels if present */}
         {Array.isArray(todo.labels) && todo.labels.length > 0 && (

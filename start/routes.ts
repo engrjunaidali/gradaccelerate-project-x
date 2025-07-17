@@ -19,7 +19,9 @@ router.post('/todos', [TodosController, 'store'])  // Create a new todo
 router.get('/todos/:id', [TodosController, 'show'])  // Get a single todo
 router.put('/todos/:id', [TodosController, 'update'])  // Update a todo
 router.delete('/todos/:id', [TodosController, 'destroy'])  // Delete a todo
-    
+
+// image upload route
+router.post('/todos/upload', [TodosController, 'uploadImage'])
     
 router.get('/notes', [NotesController, 'index'])
 router.post('/notes', [NotesController, 'store'])

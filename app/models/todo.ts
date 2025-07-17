@@ -27,6 +27,9 @@ export default class Todo extends BaseModel {
   })
   declare labels: string[] | null
 
+  @column()
+  public imageUrl?: string | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

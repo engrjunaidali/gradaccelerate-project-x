@@ -9,6 +9,7 @@ export default class extends BaseSchema {
       table.string('title').notNullable()
       table.text('content').notNullable()
       table.text('labels').nullable()
+      table.string('image_url').nullable();
 
       table.timestamp('created_at').notNullable()
       table.timestamp('updated_at').nullable()
