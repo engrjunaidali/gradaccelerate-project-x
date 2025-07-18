@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Edit, Trash2, Calendar, Eye } from 'lucide-react'
 import { DateTime } from 'luxon'
 import { router } from '@inertiajs/react'
+import { formatDate } from '../../../utils/date-utils'
 
 interface Todo {
   id: number
@@ -21,10 +22,7 @@ interface TodoCardProps {
 }
 
 export default function TodoCard({ todo, viewType, onEdit, onDelete }: TodoCardProps) {
-  const formatDate = (dateString: string) => {
-    return DateTime.fromISO(dateString).toFormat('MMM dd, yyyy')
-  }
-
+  
   const handleView = () => {
     router.visit(`/todos/${todo.id}`)
   }

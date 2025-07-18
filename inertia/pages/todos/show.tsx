@@ -3,6 +3,8 @@ import { motion } from 'framer-motion'
 import { ArrowLeft, Edit, Trash2, Calendar, Clock } from 'lucide-react'
 import { DateTime } from 'luxon'
 import { useState } from 'react'
+import { formatDate} from '../../../utils/date-utils'
+
 
 interface Todo {
   id: number;
@@ -16,10 +18,6 @@ interface Todo {
 
 export default function Show({ todo }: { todo: Todo }) {
   const [isDeleting, setIsDeleting] = useState(false)
-
-  const formatDate = (dateString: string) => {
-    return DateTime.fromISO(dateString).toFormat('MMM dd, yyyy \'at\' h:mm a')
-  }
 
   return (
     <>
