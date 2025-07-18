@@ -7,12 +7,12 @@ import NoteCard from './note-card'
 import NoteForm from './note-form'
 import ViewSwitcher from './view-switcher'
 import { PageProps as InertiaPageProps } from '@inertiajs/core'
-
+import { NoteStatus } from '../../../app/enums/NoteStatus.js'
 interface Note {
   id: number;
   title: string;
   content: string;
-  status: 'pending' | 'in-progress' | 'completed';
+  status: typeof NoteStatus;
   pinned: boolean;
   createdAt: string;
   updatedAt: string | null;

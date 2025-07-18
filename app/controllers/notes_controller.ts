@@ -1,5 +1,7 @@
 import { HttpContext } from '@adonisjs/core/http'
 import Note from '#models/note'
+import { NoteStatus } from '../enums/NoteStatus.js'
+
 
 export default class NotesController {
   /**
@@ -62,7 +64,7 @@ export default class NotesController {
     const data = request.only(['title', 'content', 'status'])
     const note = await Note.create({
       ...data,
-      status: data.status || 'pending'
+      status: data.status ?? NoteStatus.PENDING,
     })
 
     return response.redirect().back()

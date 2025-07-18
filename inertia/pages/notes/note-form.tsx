@@ -7,13 +7,15 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
 
+import { NoteStatus } from "../../../app/enums/NoteStatus.js"
+
 interface NoteFormProps {
   isEditing?: boolean
   editingNote?: {
     id: number
     title: string
     content: string
-    status: 'pending' | 'in-progress' | 'completed'
+    status: typeof NoteStatus
     pinned: boolean
   }
   onCancel?: () => void
@@ -40,13 +42,13 @@ export default function NoteForm({
   const { data, setData, post, put, processing, reset, errors } = useForm({
     title: editingNote?.title || '',
     content: editingNote?.content || '',
-    status: editingNote?.status || 'pending' as 'pending' | 'in-progress' | 'completed',
+    status: editingNote?.status || NoteStatus.PENDING,
     pinned: editingNote?.pinned || false
   })
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     if (isEditing && editingNote) {
       put(`/notes/${editingNote.id}`, {
         onSuccess: () => {
@@ -90,7 +92,7 @@ export default function NoteForm({
           {showPreview ? 'Edit' : 'Preview'}
         </button>
       </div>
-       <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <motion.input
             whileFocus={{ scale: 1.01 }}
@@ -169,8 +171,8 @@ Examples:
           )}
         </div>
         {errors.content && (
-            <p className="text-red-400 text-sm mt-1">{errors.content}</p>
-          )}
+          <p className="text-red-400 text-sm mt-1">{errors.content}</p>
+        )}
 
         <div className="mb-4">
           <label className="block text-sm font-medium text-[#98989D] mb-2">

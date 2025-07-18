@@ -4,12 +4,13 @@ import { EditIcon, PinIcon } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'  // Add this import
 import remarkGfm from 'remark-gfm'  // Add this import
 import rehypeHighlight from 'rehype-highlight'
+import { NoteStatus } from '../../../app/enums/NoteStatus.js'
 
 interface Note {
   id: number;
   title: string;
   content: string;
-  status: 'pending' | 'in-progress' | 'completed';
+  status: typeof NoteStatus;
   pinned: boolean;
   createdAt: string;
   updatedAt: string | null;
