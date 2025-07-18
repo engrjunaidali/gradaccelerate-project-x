@@ -5,13 +5,12 @@ export const TodoIdValidator = vine.compile(
     id: vine.number().positive()
   })
 )
-
 export const CreateTodoValidator = vine.compile(
   vine.object({
-    title: vine.string().trim().minLength(1).maxLength(255),
-    content: vine.string().trim().minLength(1),
+    title: vine.string().trim().minLength(1),
+    content: vine.string().trim(),
     labels: vine.any().optional(),
-    imageUrl: vine.string().url().optional().nullable()
+    imageUrl: vine.string().url().optional()
   })
 )
 

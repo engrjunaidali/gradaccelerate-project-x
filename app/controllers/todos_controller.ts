@@ -94,7 +94,7 @@ export default class TodosController {
     }
   }
 
-  private parseLabels(labels: any): string[] | null {
+  private parseLabels(labels: string | string[] | undefined): string[] | null {
     if (!labels) return null
 
     if (Array.isArray(labels)) {
