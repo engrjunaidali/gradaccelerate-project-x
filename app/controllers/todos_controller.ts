@@ -8,6 +8,9 @@ import path from 'path'
 import cloudinary from '#config/cloudinary';
 import { ImageValidator } from '../validators/todo.js';
 
+import CloudinaryService from '#services/cloudinary_service'
+
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -94,11 +97,13 @@ export default class TodosController {
         return response.badRequest({ error: 'No image file provided' })
       }
 
-      const result = await cloudinary.uploader.upload(payload.image.tmpPath!, {
-        folder: 'adonis_uploads',
-      })
+      const result = await new CloudinaryService(payload.image.tmpPath!, 'adonis_uploads').upload()
 
-      return response.ok({ message: 'Image uploaded successfully', url: result.secure_url })
+      return response.ok({
+        message: 'Image uploaded successfully',
+        url: result.url,
+        publicId: result.publicId
+      })
     } catch (error) {
       console.error('Image Upload Error:', error)
       return response.internalServerError({ error: 'Failed to upload image' })
