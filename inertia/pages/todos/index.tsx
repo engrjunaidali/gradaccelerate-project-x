@@ -5,6 +5,7 @@ import { PlusIcon, XIcon, ArrowLeft } from 'lucide-react'
 import TodoCard from './todo-card'
 import TodoForm from './todo-form'
 import ViewSwitcher from './view-switcher'
+import { z } from 'zod';
 
 interface Todo {
   id: number;
@@ -23,6 +24,7 @@ export default function Index({ todos: initialTodos }: { todos: Todo[] }) {
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null)
   const [viewType, setViewType] = useState<ViewType>('grid')
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const { data, setData, post, put, processing, reset } = useForm({
     title: '',
     content: '',
@@ -30,53 +32,81 @@ export default function Index({ todos: initialTodos }: { todos: Todo[] }) {
     imageUrl: ''
   });
 
+
+  const TodoSchema = z.object({
+    title: z.string().trim().min(1, 'Title is required'),
+    content: z.string(),
+    labels: z.array(z.string().trim().min(1)).optional().default([]),
+    imageUrl: z.string().url('Invalid URL').optional().or(z.literal(''))
+  });
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (editingTodo) {
-      // Update existing todo
-      const updatedTodo: Todo = {
-        ...editingTodo,
-        title: data.title,
-        content: data.content,
-        labels: data.labels,
-        imageUrl: data.imageUrl,
-        updatedAt: new Date().toISOString()
+    try {
+
+      const validatedData = TodoSchema.parse(data);
+      setErrors({});
+
+      if (editingTodo) {
+        // Update existing todo
+        const updatedTodo: Todo = {
+          ...editingTodo,
+          title: validatedData.title,
+          content: validatedData.content,
+          labels: validatedData.labels,
+          imageUrl: validatedData.imageUrl,
+          updatedAt: new Date().toISOString()
+        }
+
+        setTodos(todos.map(todo =>
+          todo.id === editingTodo.id ? updatedTodo : todo
+        ))
+
+        put(`/todos/${editingTodo.id}`, {
+          onSuccess: () => {
+            reset()
+            setIsFormVisible(false)
+            setEditingTodo(null)
+          }
+        });
+      } else {
+        // Create new todo
+        const newTodo: Todo = {
+          id: Date.now(),
+          title: validatedData.title,
+          content: validatedData.content,
+          labels: validatedData.labels,
+          imageUrl: validatedData.imageUrl,
+          createdAt: new Date().toISOString(),
+          updatedAt: null
+        }
+
+        setTodos([newTodo, ...todos])
+
+        post('/todos', {
+          onSuccess: () => {
+            reset()
+            setIsFormVisible(false)
+          }
+        });
       }
 
-      setTodos(todos.map(todo =>
-        todo.id === editingTodo.id ? updatedTodo : todo
-      ))
 
-      put(`/todos/${editingTodo.id}`, {
-        onSuccess: () => {
-          reset()
-          setIsFormVisible(false)
-          setEditingTodo(null)
-        }
-      });
-    } else {
-      // Create new todo
-      const newTodo: Todo = {
-        id: Date.now(),
-        title: data.title,
-        content: data.content,
-        labels: data.labels,
-        imageUrl: data.imageUrl,
-        createdAt: new Date().toISOString(),
-        updatedAt: null
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Map Zod errors to a simpler error object keyed by field
+        const fieldErrors: { [key: string]: string } = {};
+        error.issues.forEach(err => {
+          if (err.path[0]) {
+            const key = err.path[0] as string;
+            fieldErrors[key] = err.message;
+          }
+        });
+        setErrors(fieldErrors);
       }
-
-      setTodos([newTodo, ...todos])
-
-      post('/todos', {
-        onSuccess: () => {
-          reset()
-          setIsFormVisible(false)
-        }
-      });
-    }
-  };
+    };
+  }
 
   const handleEdit = (todo: Todo) => {
     setEditingTodo(todo)
@@ -185,6 +215,7 @@ export default function Index({ todos: initialTodos }: { todos: Todo[] }) {
                   handleKeyDown={handleKeyDown}
                   isEditing={!!editingTodo}
                   onCancel={handleCancel}
+                  errors={errors}
                 />
               </motion.div>
             )}

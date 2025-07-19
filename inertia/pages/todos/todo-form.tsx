@@ -11,6 +11,7 @@ interface TodoFormProps {
   handleKeyDown: (e: React.KeyboardEvent) => void
   isEditing?: boolean
   onCancel: () => void
+  errors?: { [key: string]: string }
 }
 
 export default function TodoForm({
@@ -20,7 +21,8 @@ export default function TodoForm({
   processing,
   handleKeyDown,
   isEditing = false,
-  onCancel
+  onCancel,
+  errors
 }: TodoFormProps) {
 
   const [isUploading, setIsUploading] = useState(false);
@@ -88,6 +90,7 @@ export default function TodoForm({
       transition={{ duration: 0.2 }}
     >
       <form onSubmit={submit} className="space-y-4">
+        {errors?.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
         <div>
           <input
             type="text"
