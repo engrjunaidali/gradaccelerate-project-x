@@ -37,7 +37,7 @@ export default function Index({ todos: initialTodos }: { todos: Todo[] }) {
     title: z.string().trim().min(1, 'Title is required'),
     content: z.string(),
     labels: z.array(z.string().trim().min(1)).optional().default([]),
-    imageUrl: z.string().url('Invalid URL').optional().or(z.literal(''))
+    imageUrl: z.string().url('Invalid URL').optional().or(z.literal('')).nullable()
   });
 
   const submit = (e: React.FormEvent) => {

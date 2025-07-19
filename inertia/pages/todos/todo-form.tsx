@@ -143,7 +143,7 @@ export default function TodoForm({
 
           <input
             type="text"
-            placeholder="Comma separated labels (e.g. work, personal)"
+            placeholder="Comma separated labels (e.g. work, personal), no space allowed"
             value={labelsInput}
             onChange={(e) => setLabelsInput(e.target.value)}
             onBlur={() => {

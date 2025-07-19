@@ -37,8 +37,9 @@ export default class TodosController {
 
   async store({ request, response }: HttpContext) {
     try {
+      console.log('Request data:', request.all())
       const data = await request.validateUsing(CreateTodoValidator)
-      const parsedLabels = this.parseLabels(data.labels)
+      // const parsedLabels = this.parseLabels(data.labels)
 
       console.error('Saving data', data)
       console.log('Saving data', data)
@@ -46,7 +47,7 @@ export default class TodosController {
       const todo = await Todo.create({
         title: data.title,
         content: data.content,
-        labels: parsedLabels,
+        labels: data.labels,
         imageUrl: data.imageUrl || null
       })
 
@@ -93,14 +94,20 @@ export default class TodosController {
       return response.redirect('/todos')
     }
   }
-  private parseLabels(labels: string | undefined): string[] | null {
-    if (!labels) return null
+  // private parseLabels(labels: string[] | string | undefined): string[] | null {
+  //   if (!labels) return null
 
-    const splitLabels = labels.split(',')
-      .map(l => l.trim())
-      .filter(Boolean)
-    return splitLabels.length > 0 ? splitLabels : null
-  }
+  //   if (Array.isArray(labels)) {
+  //     const cleanedLabels = labels.map(label => label.trim()).filter(Boolean)
+  //     return cleanedLabels.length > 0 ? cleanedLabels : null
+  //   }
+
+  //   // If it's a string, split it (for backward compatibility)
+  //   const splitLabels = labels.split(',')
+  //     .map(l => l.trim())
+  //     .filter(Boolean)
+  //   return splitLabels.length > 0 ? splitLabels : null
+  // }
   public async uploadImage({ request, response }: HttpContext) {
     try {
       const payload = await request.validateUsing(ImageValidator)
