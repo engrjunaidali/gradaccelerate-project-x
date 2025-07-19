@@ -9,11 +9,10 @@ export const CreateTodoValidator = vine.compile(
   vine.object({
     title: vine.string().trim().minLength(1),
     content: vine.string().trim(),
-    labels: vine.any().optional(),
+    labels: vine.string().optional(), // Only accept strings
     imageUrl: vine.string().url().optional()
   })
 )
-
 export const UpdateTodoValidator = vine.compile(
   vine.object({
     title: vine.string().trim().minLength(1).maxLength(255).optional(),

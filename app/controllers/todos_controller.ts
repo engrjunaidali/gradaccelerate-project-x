@@ -93,33 +93,14 @@ export default class TodosController {
       return response.redirect('/todos')
     }
   }
-
-  private parseLabels(labels: string | string[] | undefined): string[] | null {
+  private parseLabels(labels: string | undefined): string[] | null {
     if (!labels) return null
 
-    if (Array.isArray(labels)) {
-      const filtered = labels.filter(label => typeof label === 'string' && label.trim())
-      return filtered.length > 0 ? filtered : null
-    }
-
-    if (typeof labels === 'string') {
-      try {
-        const parsed = JSON.parse(labels)
-        if (Array.isArray(parsed)) {
-          const filtered = parsed.filter(label => typeof label === 'string' && label.trim())
-          return filtered.length > 0 ? filtered : null
-        }
-      } catch {
-        const splitLabels = labels.split(',')
-          .map(l => l.trim())
-          .filter(Boolean)
-        return splitLabels.length > 0 ? splitLabels : null
-      }
-    }
-
-    return null
+    const splitLabels = labels.split(',')
+      .map(l => l.trim())
+      .filter(Boolean)
+    return splitLabels.length > 0 ? splitLabels : null
   }
-
   public async uploadImage({ request, response }: HttpContext) {
     try {
       const payload = await request.validateUsing(ImageValidator)
