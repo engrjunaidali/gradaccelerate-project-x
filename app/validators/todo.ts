@@ -17,7 +17,7 @@ export const UpdateTodoValidator = vine.compile(
   vine.object({
     title: vine.string().trim().minLength(1).maxLength(255).optional(),
     content: vine.string().trim().minLength(1).optional(),
-    labels: vine.any().optional(),
+    labels: vine.string().optional(),
     imageUrl: vine.string().url().optional().nullable()
   })
 )
