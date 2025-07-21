@@ -19,7 +19,7 @@ export default class CloudinaryService {
             }
         } catch (error) {
             console.error('Cloudinary Upload Error:', error)
-            throw new Error('Failed to upload image to Cloudinary')
+            throw new Error(error?.message ?? 'Failed to upload image to Cloudinary')
         }
     }
 
@@ -32,7 +32,7 @@ export default class CloudinaryService {
             }
         } catch (error) {
             console.error('Cloudinary Delete Error:', error)
-            throw new Error('Failed to delete image from Cloudinary')
+            throw new Error(error?.message ?? 'Failed to delete image from Cloudinary')
         }
     }
 }
