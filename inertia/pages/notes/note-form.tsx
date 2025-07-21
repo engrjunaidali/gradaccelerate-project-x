@@ -6,7 +6,6 @@ import { useForm, usePage } from '@inertiajs/react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
-
 import { NoteStatus } from "../../../app/enums/NoteStatus.js"
 
 interface NoteFormProps {
@@ -186,9 +185,9 @@ Examples:
             className="w-full px-4 py-3 bg-[#3A3A3C] text-white placeholder-[#98989D] rounded-lg border-none focus:ring-2 focus:ring-[#0A84FF] focus:outline-none transition-all duration-200"
             disabled={processing}
           >
-            <option value="pending">Pending</option>
-            <option value="in-progress">In Progress</option>
-            <option value="completed">Completed</option>
+            <option value={NoteStatus.PENDING}>Pending</option>
+            <option value={NoteStatus.IN_PROGRESS}>In Progress</option>
+            <option value={NoteStatus.COMPLETED}>Completed</option>
           </motion.select>
         </div>
 
