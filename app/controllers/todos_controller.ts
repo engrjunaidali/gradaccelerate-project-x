@@ -1,17 +1,10 @@
 import { HttpContext } from '@adonisjs/core/http'
 import Todo from '#models/todo'
-import Cloudinary from '../../config/cloudinary.js'
-import fs from 'fs'
 import { fileURLToPath } from 'url';
 import path from 'path'
-
-import cloudinary from '#config/cloudinary';
 import { ImageValidator, TodoIdValidator, CreateTodoValidator, UpdateTodoValidator } from '../validators/todo.js'
 
-
 import CloudinaryService from '#services/cloudinary_service'
-
-
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -24,20 +17,20 @@ export default class TodosController {
 
   async show({ params, inertia, response }: HttpContext) {
     try {
-      const validatedParams = await TodoIdValidator.validate(params)
+      const validatedParams = TodoIdValidator.parse({
+        id: parseInt(params.id)
+      })
       const todo = await Todo.findOrFail(validatedParams.id)
       return inertia.render('todos/show', { todo })
     } catch (error) {
-      // Handle validation errors or record not found
       return response.redirect('/todos')
     }
   }
 
-
-
   async store({ request, response }: HttpContext) {
     try {
-      const data = await request.validateUsing(CreateTodoValidator)
+      const body = request.all()
+      const data = CreateTodoValidator.parse(body)
       const parsedLabels = this.parseLabels(data.labels)
 
       console.error('Saving data', data)
@@ -57,11 +50,13 @@ export default class TodosController {
     }
   }
 
-
   async update({ params, request, response }: HttpContext) {
     try {
-      const validatedParams = await TodoIdValidator.validate(params)
-      const validatedData = await request.validateUsing(UpdateTodoValidator)
+      const validatedParams = TodoIdValidator.parse({
+        id: parseInt(params.id)
+      })
+      const body = request.all()
+      const validatedData = UpdateTodoValidator.parse(body)
 
       const todo = await Todo.findOrFail(validatedParams.id)
 
@@ -84,7 +79,9 @@ export default class TodosController {
 
   async destroy({ params, response }: HttpContext) {
     try {
-      const validatedParams = await TodoIdValidator.validate(params)
+      const validatedParams = TodoIdValidator.parse({
+        id: parseInt(params.id)
+      })
       const todo = await Todo.findOrFail(validatedParams.id)
 
       await todo.delete()
@@ -103,22 +100,33 @@ export default class TodosController {
   }
   public async uploadImage({ request, response }: HttpContext) {
     try {
-      const payload = await request.validateUsing(ImageValidator)
+      const imageFile = request.file('image')
 
-      if (!payload.image) {
+      if (!imageFile) {
         return response.badRequest({ error: 'No image file provided' })
       }
 
-      const result = await new CloudinaryService(payload.image.tmpPath!, 'adonis_uploads').upload()
+      const validationResult = ImageValidator.safeParse({
+        extname: imageFile.extname,
+        size: imageFile.size,
+      })
+
+      if (!validationResult.success) {
+        return response.badRequest({
+          error: validationResult.error.issues.map((e) => e.message).join(', '),
+        })
+      }
+
+      const result = await new CloudinaryService(imageFile.tmpPath!, 'adonis_uploads').upload()
 
       return response.ok({
         message: 'Image uploaded successfully',
         url: result.url,
-        publicId: result.publicId
+        publicId: result.publicId,
       })
     } catch (error) {
       console.error('Image Upload Error:', error)
       return response.internalServerError({ error: 'Failed to upload image' })
     }
   }
-} 
+}
