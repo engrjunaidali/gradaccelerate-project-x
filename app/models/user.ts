@@ -6,6 +6,8 @@ import type { HasMany } from '@adonisjs/lucid/types/relations'
 import { withAuthFinder } from '@adonisjs/auth/mixins/lucid'
 import Note from './note.js'
 import Todo from './todo.js'
+import { DbAccessTokensProvider } from '@adonisjs/auth/access_tokens'
+
 
 const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
   uids: ['email'],
@@ -36,4 +38,6 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
+
+  static accessTokens = DbAccessTokensProvider.forModel(User)
 }

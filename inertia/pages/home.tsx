@@ -29,7 +29,7 @@ export default function Home() {
                 <div className="bg-[#2C2C2E] p-6 rounded-xl hover:bg-[#3C3C3E] transition-colors duration-200">
                   <h2 className="text-2xl font-semibold mb-3">Notes</h2>
                   <p className="text-gray-400 mb-4">Manage your notes and thoughts in one place</p>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 justify-center">
                     <Link
                       href="/auth/session/login"
                       className="px-3 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
@@ -50,7 +50,21 @@ export default function Home() {
               <Link href="/todos" className="block">
                 <div className="bg-[#2C2C2E] p-6 rounded-xl hover:bg-[#3C3C3E] transition-colors duration-200">
                   <h2 className="text-2xl font-semibold mb-3">Todos</h2>
-                  <p className="text-gray-400">Keep track of your tasks and stay organized</p>
+                  <p className="text-gray-400 mb-4">Keep track of your tasks and stay organized</p>
+                  <div className="flex gap-2 justify-center">
+                    <Link
+                      href="/auth/jwt/login"
+                      className="px-3 py-1 text-xs bg-indigo-600 text-white rounded hover:bg-indigo-700 transition-colors"
+                    >
+                      Sign In
+                    </Link>
+                    <Link
+                      href="/auth/jwt/signup"
+                      className="px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                    >
+                      Sign Up
+                    </Link>
+                  </div>
                 </div>
               </Link>
             </div>{/* Cards Container */}

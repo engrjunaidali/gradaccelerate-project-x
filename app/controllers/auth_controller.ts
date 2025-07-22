@@ -3,9 +3,8 @@ import User from '#models/user'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { z } from 'zod'
 
-import { signupValidator, loginValidator } from '../validators/auth.js'
-
-// Use imported validators
+import { signupValidator, loginValidator } from '#validators/auth'
+import hash from '@adonisjs/core/services/hash'
 
 export default class AuthController {
   /**
@@ -76,4 +75,58 @@ export default class AuthController {
     session.flash('success', 'Logged out successfully!')
     return response.redirect('/')
   })
+
+
+
+
+
+  /**
+   * JWT-based signup for Todo App
+   */
+  jwtSignup = async ({ request, response }: HttpContext) => {
+    const data = signupValidator.parse(request.all())
+    const user = await User.create(data)
+    const token = await User.accessTokens.create(user)
+
+    return response.json({
+      type: 'bearer',
+      value: token.value!.release(),
+    })
+  }
+
+  /**
+   * JWT-based login for Todo App
+   */
+  jwtLogin = async ({ request, response }: HttpContext) => {
+    const data = loginValidator.parse(request.all())
+    const user = await User.findBy('email', data.email)
+
+    if (!user) {
+      return response.badRequest({ error: 'Invalid credentials' })
+    }
+
+    const scrypt = hash.use('scrypt')
+    const isValid = await scrypt.verify(user.password, data.password)
+
+    if (!isValid) {
+      return response.badRequest({ error: 'Invalid credentials' })
+    }
+
+    const token = await User.accessTokens.create(user)
+
+    return response.json({
+      type: 'bearer',
+      value: token.value!.release(),
+    })
+  }
+
+  /**
+   * JWT-based logout for Todo App
+   */
+  jwtLogout = async ({ response, auth }: HttpContext) => {
+    const user = auth.getUserOrFail()
+    const token = auth.getAccessTokenOrFail()
+    await User.accessTokens.delete(user, token.identifier)
+    return response.ok({ message: 'Logged out successfully' })
+  }
 }

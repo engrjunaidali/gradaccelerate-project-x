@@ -1,111 +1,118 @@
-import { Head, useForm, Link, router } from '@inertiajs/react'
+import { Head, Link } from '@inertiajs/react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState } from 'react'
-import { PlusIcon, XIcon, ArrowLeft } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { PlusIcon, XIcon, ArrowLeft, LogOut } from 'lucide-react'
 import TodoCard from './todo-card'
 import TodoForm from './todo-form'
 import ViewSwitcher from './view-switcher'
-import { z } from 'zod';
+import { z } from 'zod'
+import { TodoAuth, api } from '../../lib/TodoAuth'
 
 interface Todo {
   id: number;
   title: string;
   content: string;
-  labels: string[];
-  imageUrl: string;
+  labels: string[] | null;
+  imageUrl: string | null;
   createdAt: string;
   updatedAt: string | null;
 }
 
 type ViewType = 'grid' | 'list'
 
-export default function Index({ todos: initialTodos }: { todos: Todo[] }) {
-  const [todos, setTodos] = useState(initialTodos)
+export default function Index() {
+  const [todos, setTodos] = useState<Todo[]>([])
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [editingTodo, setEditingTodo] = useState<Todo | null>(null)
   const [viewType, setViewType] = useState<ViewType>('grid')
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-  const { data, setData, post, put, processing, reset } = useForm({
+  const [errors, setErrors] = useState<{ [key: string]: string }>({})
+  const [processing, setProcessing] = useState(false)
+  const [data, setData] = useState({
     title: '',
     content: '',
     labels: [] as string[],
     imageUrl: ''
-  });
+  })
 
+  // Load todos on component mount
+  useEffect(() => {
+    loadTodos()
+  }, [])
+
+  const loadTodos = async () => {
+    try {
+      const response = await api.get('/api/todos')
+      setTodos(response.data.todos || [])
+    } catch (error) {
+      console.error('Failed to load todos:', error)
+      // If unauthorized, redirect to login
+      if (error.response?.status === 401) {
+        window.location.href = '/auth/jwt/login'
+      }
+    }
+  }
 
   const TodoSchema = z.object({
     title: z.string().trim().min(1, 'Title is required'),
     content: z.string(),
     labels: z.array(z.string().trim().min(1)).optional().default([]),
-    imageUrl: z.string().url('Invalid URL').optional().or(z.literal('')).nullable()
-  });
+    imageUrl: z.string().url('Invalid URL').optional().or(z.literal('')).nullable(),
+    user_id: z.number().optional()
+  })
 
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setProcessing(true)
 
     try {
-
-      const validatedData = TodoSchema.parse(data);
-      setErrors({});
+      const validatedData = TodoSchema.parse(data)
+      setErrors({})
 
       if (editingTodo) {
         // Update existing todo
-        const updatedTodo: Todo = {
-          ...editingTodo,
-          title: validatedData.title,
-          content: validatedData.content,
-          labels: validatedData.labels,
-          imageUrl: validatedData.imageUrl,
-          updatedAt: new Date().toISOString()
-        }
+        const response = await api.put(`/api/todos/${editingTodo.id}`, validatedData)
+        const updatedTodo = response.data.todo
 
         setTodos(todos.map(todo =>
           todo.id === editingTodo.id ? updatedTodo : todo
         ))
-
-        put(`/todos/${editingTodo.id}`, {
-          onSuccess: () => {
-            reset()
-            setIsFormVisible(false)
-            setEditingTodo(null)
-          }
-        });
       } else {
         // Create new todo
-        const newTodo: Todo = {
-          id: Date.now(),
-          title: validatedData.title,
-          content: validatedData.content,
-          labels: validatedData.labels,
-          imageUrl: validatedData.imageUrl,
-          createdAt: new Date().toISOString(),
-          updatedAt: null
-        }
+        const response = await api.post('/api/todos', validatedData)
+        const newTodo = response.data.todo
 
         setTodos([newTodo, ...todos])
-
-        post('/todos', {
-          onSuccess: () => {
-            reset()
-            setIsFormVisible(false)
-          }
-        });
       }
 
-
+      reset()
+      setIsFormVisible(false)
+      setEditingTodo(null)
     } catch (error) {
       if (error instanceof z.ZodError) {
-        // Map Zod errors to a simpler error object keyed by field
-        const fieldErrors: { [key: string]: string } = {};
+        const fieldErrors: { [key: string]: string } = {}
         error.issues.forEach(err => {
           if (err.path[0]) {
-            const key = err.path[0] as string;
-            fieldErrors[key] = err.message;
+            const key = err.path[0] as string
+            fieldErrors[key] = err.message
           }
-        });
-        setErrors(fieldErrors);
+        })
+        setErrors(fieldErrors)
+      } else {
+        console.error('Submit error:', error)
+        setErrors({ general: 'An error occurred. Please try again.' })
       }
-    };
+    } finally {
+      setProcessing(false)
+    }
+  }
+
+  const reset = () => {
+    setData({
+      title: '',
+      content: '',
+      labels: [],
+      imageUrl: ''
+    })
   }
 
   const handleEdit = (todo: Todo) => {
@@ -114,36 +121,53 @@ export default function Index({ todos: initialTodos }: { todos: Todo[] }) {
       title: todo.title,
       content: todo.content,
       labels: todo.labels || [],
-      imageUrl: todo.imageUrl
+      imageUrl: todo.imageUrl || ''
     })
     setIsFormVisible(true)
-  };
+  }
 
-  const handleDelete = (id: number) => {
-    setTodos(todos.filter(todo => todo.id !== id))
-
-    router.delete(`/todos/${id}`, {
-      onError: () => {
-        // Revert optimistic update on error
-        setTodos(initialTodos)
-      }
-    });
-  };
+  const handleDelete = async (id: number) => {
+    try {
+      await api.delete(`/api/todos/${id}`)
+      setTodos(todos.filter(todo => todo.id !== id))
+    } catch (error) {
+      console.error('Delete error:', error)
+    }
+  }
 
   const handleCancel = () => {
     setIsFormVisible(false)
     setEditingTodo(null)
     reset()
-  };
+  }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-      submit(e as any);
+      submit(e as any)
     }
     if (e.key === 'Escape') {
-      handleCancel();
+      handleCancel()
     }
-  };
+  }
+
+  const handleLogout = async () => {
+    try {
+      await api.post('/api/auth/jwt/logout')
+    } catch (error) {
+      console.error('Logout error:', error)
+    } finally {
+      TodoAuth.removeToken()
+      window.location.href = '/auth/jwt/login'
+    }
+  }
+
+  // Custom setData function to match TodoForm expectations
+  const updateData = (field: string, value: any) => {
+    setData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
 
   return (
     <>
@@ -178,6 +202,14 @@ export default function Index({ todos: initialTodos }: { todos: Todo[] }) {
               <ViewSwitcher currentView={viewType} onChange={setViewType} />
               <motion.button
                 whileTap={{ scale: 0.95 }}
+                onClick={handleLogout}
+                className="bg-red-600 text-white p-3 rounded-full shadow-lg hover:bg-red-700 transition-colors duration-200"
+                title="Logout"
+              >
+                <LogOut size={20} />
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.95 }}
                 onClick={() => setIsFormVisible(!isFormVisible)}
                 className="bg-[#0A84FF] text-white p-3 rounded-full shadow-lg hover:bg-[#0A74FF] transition-colors duration-200"
               >
@@ -209,7 +241,7 @@ export default function Index({ todos: initialTodos }: { todos: Todo[] }) {
               >
                 <TodoForm
                   data={data}
-                  setData={setData}
+                  setData={updateData}
                   submit={submit}
                   processing={processing}
                   handleKeyDown={handleKeyDown}

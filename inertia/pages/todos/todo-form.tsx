@@ -58,9 +58,11 @@ export default function TodoForm({
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
 
     try {
-      const res = await axios.post('/todos/upload', formData, {
+      const token = localStorage.getItem('todo_app_token');
+      const res = await axios.post('/api/todos/upload', formData, {
         headers: {
           'X-CSRF-TOKEN': csrfToken || '',
+          'Authorization': token ? `Bearer ${token}` : '',
           // 'Content-Type': let axios/browser set this!
         },
         withCredentials: true, // sends cookies
@@ -74,6 +76,7 @@ export default function TodoForm({
 
     } catch (err) {
       setImageFile(null);
+      setIsUploading(false);
       alert('Image upload failed.');
       console.error('Image upload error:', err);
     }
