@@ -1,6 +1,8 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column } from '@adonisjs/lucid/orm'
+import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
+import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import { NoteStatus } from '../enums/NoteStatus.js'
+import User from './user.js'
 
 export default class Note extends BaseModel {
   @column({ isPrimary: true })
@@ -18,9 +20,15 @@ export default class Note extends BaseModel {
   @column()
   declare pinned: boolean
 
+  @column()
+  declare userId: number
+
+  @belongsTo(() => User)
+  declare user: BelongsTo<typeof User>
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
-} 
+}
