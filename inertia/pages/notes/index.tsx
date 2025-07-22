@@ -45,10 +45,6 @@ interface SortConfig {
 interface PageProps extends InertiaPageProps {
   notes: NotesData;
   currentSort: SortConfig;
-  flash?: {
-    success?: string;
-    error?: string;
-  };
   user?: {
     id: number;
     fullName: string | null;
@@ -57,7 +53,7 @@ interface PageProps extends InertiaPageProps {
 }
 
 export default function Index() {
-  const { notes: notesData, currentSort, flash, user } = usePage<PageProps>().props
+  const { notes: notesData, currentSort, user } = usePage<PageProps>().props
 
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [viewType, setViewType] = useState<ViewType>('grid')
@@ -102,7 +98,7 @@ export default function Index() {
     router.patch(`/notes/${id}/toggle-pin`, {}, {
       preserveState: true,
       preserveScroll: true,
-      only: ['notes', 'flash']
+      only: ['notes']
     })
   }
 
@@ -146,7 +142,6 @@ export default function Index() {
       default: return field
     }
   }
-
 
   return (
     <>
@@ -201,31 +196,6 @@ export default function Index() {
               </motion.button>
             </div>
           </motion.div>
-
-          {/* Flash Messages */}
-          <AnimatePresence>
-            {flash?.success && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mb-4 p-3 bg-green-500/20 border border-green-500/50 rounded-lg text-green-300"
-              >
-                {flash.success}
-              </motion.div>
-            )}
-
-            {flash?.error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300"
-              >
-                {flash.error}
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           {/* Sorting Controls */}
           <motion.div

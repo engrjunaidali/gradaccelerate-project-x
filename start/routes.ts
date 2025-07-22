@@ -10,6 +10,7 @@
 const NotesController = () => import('#controllers/notes_controller')
 const TodosController = () => import('#controllers/todos_controller')
 const AuthController = () => import('#controllers/auth_controller')
+const GoogleAuthController = () => import('#controllers/google_auth_controller')
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
 
@@ -64,3 +65,11 @@ router.group(() => {
   .use(middleware.auth({ guards: ['api'] }))
 
 router.get('/todos', ({ inertia }) => { return inertia.render('todos/index') })
+
+
+// ---------------- Google Authentication routes
+
+router.get('/auth/google/notes', [GoogleAuthController, 'redirectForNotes'])
+router.get('/auth/google/todos', [GoogleAuthController, 'redirectForTodos'])
+router.get('/auth/google/callback', [GoogleAuthController, 'callback'])
+router.get('/auth/google/token', [GoogleAuthController, 'handleToken'])
