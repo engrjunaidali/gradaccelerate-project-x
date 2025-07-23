@@ -1,20 +1,10 @@
 import { HttpContext } from '@adonisjs/core/http'
 import Todo from '#models/todo'
-import Cloudinary from '../../config/cloudinary.js'
-import fs from 'fs'
-import { fileURLToPath } from 'url';
-import path from 'path'
 
-import cloudinary from '#config/cloudinary';
 import { ImageValidator, TodoIdValidator, CreateTodoValidator, UpdateTodoValidator } from '../validators/todo.js'
 
 
 import CloudinaryService from '#services/cloudinary_service'
-
-
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 export default class TodosController {
   async index({ response, auth }: HttpContext) {
@@ -137,9 +127,8 @@ export default class TodosController {
     }
   }
 
-  public async uploadImage({ request, response, auth }: HttpContext) {
+  public async uploadImage({ request, response }: HttpContext) {
     try {
-      const user = auth.getUserOrFail()
       const imageFile = request.file('image')
 
 

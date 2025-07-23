@@ -2,6 +2,8 @@ import { HttpContext } from '@adonisjs/core/http'
 import Note from '#models/note'
 import { NoteStatus } from '../enums/NoteStatus.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
+import { cuid } from '@adonisjs/core/helpers'
+import { DateTime } from 'luxon'
 
 export default class NotesController {
   /**
@@ -61,6 +63,41 @@ export default class NotesController {
     }
     return response.json(note)
   })
+
+  async share({ params, response, auth }: HttpContext) {
+    const user = auth.user!
+    const note = await Note.query().where('id', params.id).where('user_id', user.id).first()
+
+    if (!note) {
+      return response.notFound({ message: 'Note not found' })
+    }
+
+    note.shared_token = cuid()
+    note.shared_token_expires_at = DateTime.now().plus({ hours: 24 })
+    await note.save()
+
+    const shareableLink = `${process.env.APP_URL}/notes/shared/${note.shared_token}`
+
+    return response.json({
+      message: 'Note shared successfully',
+      shareableLink,
+    })
+  }
+
+  async showShared({ params, inertia, response }: HttpContext) {
+    const token = params.token
+    const note = await Note.query().where('shared_token', token).first()
+
+    if (!note) {
+      return response.notFound('Note not found or invalid share link.')
+    }
+
+    if (note.shared_token_expires_at && note.shared_token_expires_at < DateTime.now()) {
+      return response.badRequest('Share link has expired.')
+    }
+
+    return inertia.render('notes/shared', { note })
+  }
 
   /**
    * Store a new note

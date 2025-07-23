@@ -35,8 +35,11 @@ router.group(() => {
   router.put('/:id', [NotesController, 'update'])    // PUT /notes/:id
   router.patch('/:id/toggle-pin', [NotesController, 'togglePin'])
   router.delete('/:id', [NotesController, 'destroy']) // DELETE /notes/:id
+  router.post('/:id/share', [NotesController, 'share'])
 })
   .prefix('/notes').middleware([middleware.auth()])
+
+router.get('/notes/shared/:token', [NotesController, 'showShared'])
 
 
 

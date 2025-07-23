@@ -124,7 +124,7 @@ export default class AuthController {
    * JWT-based logout for Todo App
    */
   jwtLogout = async ({ response, auth }: HttpContext) => {
-    const user = auth.getUserOrFail()
+    const user = auth.use('api').getUserOrFail()
     const token = auth.getAccessTokenOrFail()
     await User.accessTokens.delete(user, token.identifier)
     return response.ok({ message: 'Logged out successfully' })

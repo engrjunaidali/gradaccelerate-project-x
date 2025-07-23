@@ -23,6 +23,12 @@ export default class Note extends BaseModel {
   @column()
   declare userId: number
 
+  @column()
+  declare shared_token: string | null
+
+  @column.dateTime()
+  declare shared_token_expires_at: DateTime | null
+
   @belongsTo(() => User)
   declare user: BelongsTo<typeof User>
 
