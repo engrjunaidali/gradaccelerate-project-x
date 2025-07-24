@@ -1,5 +1,6 @@
 import { Head } from '@inertiajs/react'
 import { Link } from '@inertiajs/react'
+import WeatherWidget from '../components/WeatherWidget'
 
 export default function Home() {
   return (
@@ -20,7 +21,10 @@ export default function Home() {
               </defs>
             </svg>
 
-            <h1 className="text-4xl font-bold mb-12">Welcome to Race Track</h1>
+            <h1 className="text-4xl font-bold mb-8">Welcome to Race Track</h1>
+
+            {/* Weather Widget */}
+            <WeatherWidget className="w-full max-w-md mb-8" />
 
             {/* Cards Container */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl w-full">
