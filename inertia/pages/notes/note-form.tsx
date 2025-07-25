@@ -1,13 +1,42 @@
 import type React from "react"
 import { motion } from "framer-motion"
-import { SaveIcon, PinIcon, EyeIcon, EditIcon, Share2Icon } from 'lucide-react'
-import { useState } from 'react'
+import { EyeIcon, EditIcon, Share2Icon, Image } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react'
 import { useForm, usePage } from '@inertiajs/react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
 import { NoteStatus } from "../../../app/enums/NoteStatus.js"
 import axios from 'axios'
+import GiphyPicker from '../../components/GiphyPicker'
+
+interface GiphyGif {
+  id: string
+  title: string
+  url: string
+  images: {
+    original: {
+      url: string
+      width: string
+      height: string
+    }
+    fixed_height: {
+      url: string
+      width: string
+      height: string
+    }
+    fixed_width: {
+      url: string
+      width: string
+      height: string
+    }
+    preview_gif: {
+      url: string
+      width: string
+      height: string
+    }
+  }
+}
 
 interface NoteFormProps {
   isEditing?: boolean
@@ -35,10 +64,11 @@ export default function NoteForm({
   onCancel,
   onSuccess
 }: NoteFormProps) {
-  const { flash } = usePage<PageProps>().props
-
   const [showPreview, setShowPreview] = useState(false)
   const [shareableLink, setShareableLink] = useState<string | null>(null)
+  const [showGiphyPicker, setShowGiphyPicker] = useState(false)
+  const [giphySearchQuery, setGiphySearchQuery] = useState('')
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
 
   const { data, setData, post, put, processing, reset, errors } = useForm({
     title: editingNote?.title || '',
@@ -82,11 +112,78 @@ export default function NoteForm({
       handleSubmit(e)
     }
   }
+
+  // giphy search handling
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const newContent = e.target.value
+    setData("content", newContent)
+
+    // Check for slash commands
+    const lines = newContent.split('\n')
+    const currentLineIndex = e.target.selectionStart ?
+      newContent.substring(0, e.target.selectionStart).split('\n').length - 1 :
+      lines.length - 1
+    const currentLine = lines[currentLineIndex] || ''
+
+    // Detect /giphy command
+    const giphyMatch = currentLine.match(/\/giphy\s+(.+)$/)
+    if (giphyMatch) {
+      const searchQuery = giphyMatch[1].trim()
+      if (searchQuery) {
+        setGiphySearchQuery(searchQuery)
+        setShowGiphyPicker(true)
+      }
+    }
+  }
+
+  const handleGifSelect = (gif: GiphyGif) => {
+    if (!textareaRef.current) return
+
+    const textarea = textareaRef.current
+    const cursorPosition = textarea.selectionStart
+    const content = data.content
+    const lines = content.split('\n')
+
+    // Find the line with /giphy command
+    const lineStartPosition = content.lastIndexOf('\n', cursorPosition - 1) + 1
+    const lineEndPosition = content.indexOf('\n', cursorPosition)
+    const currentLine = content.substring(
+      lineStartPosition,
+      lineEndPosition === -1 ? content.length : lineEndPosition
+    )
+
+    // Replace /giphy command with GIF markdown
+    const giphyMatch = currentLine.match(/\/giphy\s+(.+)$/)
+    if (giphyMatch) {
+      const gifMarkdown = `![${gif.title}](${gif.images.original.url})`
+      const newContent =
+        content.substring(0, lineStartPosition) +
+        currentLine.replace(/\/giphy\s+(.+)$/, gifMarkdown) +
+        content.substring(lineEndPosition === -1 ? content.length : lineEndPosition)
+
+      setData("content", newContent)
+    }
+
+    setShowGiphyPicker(false)
+    setGiphySearchQuery('')
+  }
+
+
   return (
     <motion.div
       className="bg-[#2C2C2E] rounded-xl p-6 backdrop-blur-lg border border-[#3A3A3C]"
       style={{ boxShadow: "0 10px 30px rgba(0, 0, 0, 0.25)" }}
     >
+      {/* GiphyPicker Modal */}
+      {showGiphyPicker && (
+        <GiphyPicker
+          isOpen={showGiphyPicker}
+          searchQuery={giphySearchQuery}
+          onGifSelect={handleGifSelect}
+          onClose={() => setShowGiphyPicker(false)}
+        />
+      )}
+
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-semibold text-white">
           {isEditing ? 'Edit Note' : 'New Note'}
@@ -96,8 +193,8 @@ export default function NoteForm({
             type="button"
             onClick={() => setShowPreview(!showPreview)}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors ${showPreview
-                ? 'bg-[#0A84FF] text-white'
-                : 'bg-[#3A3A3C] text-[#98989D] hover:bg-[#4A4A4C]'
+              ? 'bg-[#0A84FF] text-white'
+              : 'bg-[#3A3A3C] text-[#98989D] hover:bg-[#4A4A4C]'
               }`}
           >
             {showPreview ? <EditIcon size={14} /> : <EyeIcon size={14} />}
@@ -185,10 +282,11 @@ export default function NoteForm({
             </div>
           ) : (
             <motion.textarea
+              ref={textareaRef}
               whileFocus={{ scale: 1.01 }}
               transition={{ duration: 0.2 }}
               value={data.content}
-              onChange={(e) => setData("content", e.target.value)}
+              onChange={handleContentChange}
               onKeyDown={handleKeyDown}
               placeholder="Write your note... (Markdown supported)
 
@@ -198,7 +296,10 @@ Examples:
 *Italic text*
 - List item
 `code`
-[Link](https://example.com)"
+[Link](https://example.com)
+
+Slash Commands:
+/giphy [search term] - Insert a GIF"
               className="w-full px-4 py-3 bg-[#3A3A3C] text-white placeholder-[#98989D] rounded-lg border-none focus:ring-2 focus:ring-[#0A84FF] focus:outline-none min-h-[120px] transition-all duration-200 font-mono"
               required
             />
@@ -244,4 +345,4 @@ Examples:
       </form>
     </motion.div>
   )
-} 
+}

@@ -12,6 +12,7 @@ const TodosController = () => import('#controllers/todos_controller')
 const AuthController = () => import('#controllers/auth_controller')
 const GoogleAuthController = () => import('#controllers/google_auth_controller')
 const WeatherController = () => import('#controllers/weather_controller')
+const GiphyController = () => import('#controllers/giphy_controller')
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
 
@@ -85,3 +86,11 @@ router.group(() => {
   router.get('/location', [WeatherController, 'getLocationByIP'])              // GET /weather/location
 })
   .prefix('/weather')
+
+// ---------------- Giphy API routes
+
+router.group(() => {
+  router.get('/search', [GiphyController, 'search'])        // GET /api/giphy/search?query=...
+})
+  .prefix('/api/giphy')
+  .middleware([middleware.auth()])
