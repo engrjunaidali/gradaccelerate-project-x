@@ -1,5 +1,6 @@
 import { HttpContext } from '@adonisjs/core/http'
 import Note from '#models/note'
+import { createNoteValidator, updateNoteValidator } from '#validators/note_validator'
 
 export default class NotesController {
   /**
@@ -25,7 +26,7 @@ export default class NotesController {
    * Store a new note
    */
   async store({ request, response }: HttpContext) {
-    const data = request.only(['title', 'content'])
+    const data = await request.validateUsing(createNoteValidator)
     const note = await Note.create(data)
     return response.redirect().back()
   }
@@ -39,7 +40,7 @@ export default class NotesController {
       return response.notFound({ message: 'Note not found' })
     }
 
-    const data = request.only(['title', 'content'])
+    const data = await request.validateUsing(updateNoteValidator)
     await note.merge(data).save()
     return response.redirect().back()
   }
@@ -56,4 +57,4 @@ export default class NotesController {
     await note.delete()
     return response.redirect().back()
   }
-} 
+}
