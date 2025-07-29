@@ -15,7 +15,12 @@ export default class NotesController {
    * Get a specific note
    */
   async show({ params, response }: HttpContext) {
-    const note = await Note.find(params.id)
+    const id = parseInt(params.id)
+    if (isNaN(id) || id <= 0) {
+      return response.unprocessableEntity({ message: 'Invalid note ID' })
+    }
+
+    const note = await Note.find(id)
     if (!note) {
       return response.notFound({ message: 'Note not found' })
     }
@@ -35,7 +40,12 @@ export default class NotesController {
    * Update a note
    */
   async update({ params, request, response }: HttpContext) {
-    const note = await Note.find(params.id)
+    const id = parseInt(params.id)
+    if (isNaN(id) || id <= 0) {
+      return response.unprocessableEntity({ message: 'Invalid note ID' })
+    }
+
+    const note = await Note.find(id)
     if (!note) {
       return response.notFound({ message: 'Note not found' })
     }
@@ -49,7 +59,12 @@ export default class NotesController {
    * Delete a note
    */
   async destroy({ params, response }: HttpContext) {
-    const note = await Note.find(params.id)
+    const id = parseInt(params.id)
+    if (isNaN(id) || id <= 0) {
+      return response.unprocessableEntity({ message: 'Invalid note ID' })
+    }
+
+    const note = await Note.find(id)
     if (!note) {
       return response.notFound({ message: 'Note not found' })
     }
