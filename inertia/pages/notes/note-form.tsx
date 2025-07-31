@@ -10,6 +10,10 @@ import { NoteStatus } from "../../../app/enums/NoteStatus.js"
 import axios from 'axios'
 import GiphyPicker from '../../components/GiphyPicker'
 
+import { Button } from "../../../inertia/components/ui.js/button"
+import { Input } from "../../../inertia/components/ui.js/input"
+import { Card } from "../../../inertia/components/ui.js/card"
+
 interface GiphyGif {
   id: string
   title: string
@@ -170,7 +174,7 @@ export default function NoteForm({
 
 
   return (
-    <motion.div
+    <Card
       className="bg-[#2C2C2E] rounded-xl p-6 backdrop-blur-lg border border-[#3A3A3C]"
       style={{ boxShadow: "0 10px 30px rgba(0, 0, 0, 0.25)" }}
     >
@@ -189,50 +193,50 @@ export default function NoteForm({
           {isEditing ? 'Edit Note' : 'New Note'}
         </h2>
         <div className="flex items-center gap-2">
-          <button
+          <Button
             type="button"
             onClick={() => setShowPreview(!showPreview)}
             className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors ${showPreview
-              ? 'bg-[#0A84FF] text-white'
-              : 'bg-[#3A3A3C] text-[#98989D] hover:bg-[#4A4A4C]'
+              ? 'text-white'
+              : 'text-[#98989D] hover:bg-[#4A4A4C]'
               }`}
           >
             {showPreview ? <EditIcon size={14} /> : <EyeIcon size={14} />}
             {showPreview ? 'Edit' : 'Preview'}
-          </button>
+          </Button>
           {isEditing && (
-            <button
+            <Button
               type="button"
               onClick={handleShare}
-              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors bg-[#3A3A3C] text-[#98989D] hover:bg-[#4A4A4C]"
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors text-[#98989D] hover:bg-[#4A4A4C]"
             >
               <Share2Icon size={14} />
               Share
-            </button>
+            </Button>
           )}
         </div>
       </div>
       {shareableLink && (
         <div className="mb-4 p-3 bg-[#3A3A3C] rounded-lg">
           <p className="text-white">Shareable Link:</p>
-          <input
+          <Input
             type="text"
             readOnly
             value={shareableLink}
-            className="w-full bg-[#1C1C1E] text-white p-2 rounded mt-1"
+            className="w-full text-white p-2 rounded mt-1"
           />
         </div>
       )}
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <motion.input
+          <Input
             whileFocus={{ scale: 1.01 }}
             transition={{ duration: 0.2 }}
             type="text"
             value={data.title}
             onChange={(e) => setData("title", e.target.value)}
             placeholder="Note title"
-            className="w-full px-4 py-3 bg-[#3A3A3C] text-white placeholder-[#98989D] rounded-lg border-none focus:ring-2 focus:ring-[#0A84FF] focus:outline-none transition-all duration-200"
+            className="text-white"
             required
           />
           {errors.title && (
@@ -281,7 +285,7 @@ export default function NoteForm({
               </ReactMarkdown>
             </div>
           ) : (
-            <motion.textarea
+            <Input
               ref={textareaRef}
               whileFocus={{ scale: 1.01 }}
               transition={{ duration: 0.2 }}
@@ -300,7 +304,7 @@ Examples:
 
 Slash Commands:
 /giphy [search term] - Insert a GIF"
-              className="w-full px-4 py-3 bg-[#3A3A3C] text-white placeholder-[#98989D] rounded-lg border-none focus:ring-2 focus:ring-[#0A84FF] focus:outline-none min-h-[120px] transition-all duration-200 font-mono"
+              className="w-full px-4 py-3 bg-[#3A3A3C] text-white placeholder-[#98989D]  min-h-[120px]"
               required
             />
           )}
@@ -327,22 +331,22 @@ Slash Commands:
           </motion.select>
         </div>
 
-        <motion.button
+        <Button
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           type="submit"
           disabled={processing}
-          className="w-full bg-[#0A84FF] text-white px-4 py-3 rounded-lg hover:bg-[#0A74FF] focus:outline-none focus:ring-2 focus:ring-[#0A84FF] focus:ring-offset-2 focus:ring-offset-[#2C2C2E] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200"
+          className="w-full text-white"
         >
           {processing
             ? (isEditing ? "Updating..." : "Adding...")
             : (isEditing ? "Update Note" : "Add Note")
           }
-        </motion.button>
+        </Button>
         <p className="text-center text-sm text-[#98989D] mt-2">
           Hit {navigator.platform?.includes("Mac") ? "⌘" : "Ctrl"} + Enter to {isEditing ? "update" : "add"} note • Toggle preview to see Markdown rendering
         </p>
       </form>
-    </motion.div>
+    </Card>
   )
 }

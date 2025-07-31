@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Head, useForm } from '@inertiajs/react'
-
+import { Button } from "../../../inertia/components/ui.js/button"
+import { Input } from "../../../inertia/components/ui.js/input"
+import { Card } from "../../../inertia/components/ui.js/card"
 interface LoginFormData {
   email: string
   password: string
@@ -62,14 +64,14 @@ export default function Login() {
         </div>
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <Card className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label htmlFor="email" className="block text-sm font-medium text-gray-700">
                   Email address
                 </label>
                 <div className="mt-1">
-                  <input
+                  <Input
                     id="email"
                     name="email"
                     type="email"
@@ -77,7 +79,6 @@ export default function Login() {
                     required
                     value={data.email}
                     onChange={(e) => setData('email', e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     placeholder="Enter your email"
                   />
                   {(localErrors.email || errors.email) && (
@@ -93,7 +94,7 @@ export default function Login() {
                   Password
                 </label>
                 <div className="mt-1">
-                  <input
+                  <Input
                     id="password"
                     name="password"
                     type="password"
@@ -101,7 +102,6 @@ export default function Login() {
                     required
                     value={data.password}
                     onChange={(e) => setData('password', e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     placeholder="Enter your password"
                   />
                   {(localErrors.password || errors.password) && (
@@ -113,13 +113,13 @@ export default function Login() {
               </div>
 
               <div>
-                <button
+                <Button
                   type="submit"
                   disabled={processing}
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex justify-center py-2 px-4 border"
                 >
                   {processing ? 'Signing in...' : 'Sign in'}
-                </button>
+                </Button>
               </div>
 
               <div className="relative">
@@ -155,7 +155,7 @@ export default function Login() {
                 </a>
               </div>
             </form>
-          </div>
+          </Card>
         </div>
       </div>
     </>

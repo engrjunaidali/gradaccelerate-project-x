@@ -1,6 +1,9 @@
 import React, { useState } from 'react'
 import { Head } from '@inertiajs/react'
 import { api } from '../../lib/TodoAuth'
+import { Button } from "../../../inertia/components/ui.js/button"
+import { Input } from "../../../inertia/components/ui.js/input"
+import { Card } from "../../../inertia/components/ui.js/card"
 
 const TodoSignup: React.FC = () => {
   const [fullName, setFullName] = useState('')
@@ -61,7 +64,7 @@ const TodoSignup: React.FC = () => {
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+        <Card className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {error && (
             <div className="mb-4 bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
               {error}
@@ -74,7 +77,7 @@ const TodoSignup: React.FC = () => {
                 Full name
               </label>
               <div className="mt-1">
-                <input
+                <Input
                   id="fullName"
                   name="fullName"
                   type="text"
@@ -82,7 +85,6 @@ const TodoSignup: React.FC = () => {
                   required
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
             </div>
@@ -92,7 +94,7 @@ const TodoSignup: React.FC = () => {
                 Email address
               </label>
               <div className="mt-1">
-                <input
+                <Input
                   id="email"
                   name="email"
                   type="email"
@@ -100,7 +102,6 @@ const TodoSignup: React.FC = () => {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
             </div>
@@ -110,7 +111,7 @@ const TodoSignup: React.FC = () => {
                 Password
               </label>
               <div className="mt-1">
-                <input
+                <Input
                   id="password"
                   name="password"
                   type="password"
@@ -118,19 +119,18 @@ const TodoSignup: React.FC = () => {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 />
               </div>
             </div>
 
             <div>
-              <button
+              <Button
                 type="submit"
                 disabled={isLoading}
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full flex justify-center py-2 px-4 border"
               >
                 {isLoading ? 'Creating account...' : 'Create account'}
-              </button>
+              </Button>
             </div>
 
             <div className="relative">
@@ -166,7 +166,7 @@ const TodoSignup: React.FC = () => {
               </a>
             </div>
           </form>
-        </div>
+        </Card>
       </div>
     </div>
   )

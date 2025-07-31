@@ -3,6 +3,7 @@ import { Edit, Trash2, Calendar, Eye } from 'lucide-react'
 import { DateTime } from 'luxon'
 import { router } from '@inertiajs/react'
 import { formatDate } from '../../../utils/date-utils'
+import { Button } from "../../../inertia/components/ui.js/button"
 
 interface Todo {
   id: number
@@ -31,7 +32,7 @@ export default function TodoCard({ todo, viewType, onEdit, onDelete }: TodoCardP
     <motion.div
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={`bg-[#2C2C2E] rounded-lg p-4 shadow-lg border border-[#3A3A3C] hover:border-[#0A84FF] transition-all duration-200 ${viewType === 'list' ? 'flex items-center justify-between' : ''
+      className={`bg-[#2C2C2E] rounded-lg p-4 shadow-lg border border-[#3A3A3C] hover:border-white transition-all duration-200 ${viewType === 'list' ? 'flex items-center justify-between' : ''
         }`}
     >
       <div className={viewType === 'list' ? 'flex-1' : ''}>
@@ -80,32 +81,32 @@ export default function TodoCard({ todo, viewType, onEdit, onDelete }: TodoCardP
 
       <div className={`flex gap-2 ${viewType === 'list' ? 'ml-4' : 'mt-4'}`}>
 
-        <motion.button
+        <Button
           whileTap={{ scale: 0.9 }}
           onClick={handleView}
-          className="p-2 bg-[#34C759] text-white rounded-lg hover:bg-[#30B855] transition-colors duration-200"
+          className="p-2 bg-[#34C759] text-white hover:bg-[#30B855] transition-colors duration-200 rounded-full"
           title="View todo"
         >
           <Eye size={16} />
-        </motion.button>
+        </Button>
 
-        <motion.button
+        <Button
           whileTap={{ scale: 0.9 }}
           onClick={() => onEdit(todo)}
-          className="p-2 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A74FF] transition-colors duration-200"
+          className="p-2 bg-[#0A84FF] text-white hover:bg-[#0A74FF] transition-colors duration-200 rounded-full"
           title="Edit todo"
         >
           <Edit size={16} />
-        </motion.button>
+        </Button>
 
-        <motion.button
+        <Button
           whileTap={{ scale: 0.9 }}
           onClick={() => onDelete(todo.id)}
-          className="p-2 bg-[#FF3B30] text-white rounded-lg hover:bg-[#FF2D20] transition-colors duration-200"
+          className="p-2 bg-[#FF3B30] text-white hover:bg-[#FF2D20] transition-colors duration-200  rounded-full"
           title="Delete todo"
         >
           <Trash2 size={16} />
-        </motion.button>
+        </Button>
       </div>
     </motion.div>
   )

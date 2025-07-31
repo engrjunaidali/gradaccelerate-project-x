@@ -3,6 +3,7 @@ import { getDirname } from '@adonisjs/core/helpers'
 import inertia from '@adonisjs/inertia/client'
 import react from '@vitejs/plugin-react'
 import adonisjs from '@adonisjs/vite/client'
+import tailwindcss from '@tailwindcss/postcss'
 
 export default defineConfig({
   plugins: [
@@ -18,6 +19,12 @@ export default defineConfig({
   resolve: {
     alias: {
       '~/': `${getDirname(import.meta.url)}/inertia/`,
+    },
+  },
+
+  css: {
+    postcss: {
+      plugins: [tailwindcss],
     },
   },
 })

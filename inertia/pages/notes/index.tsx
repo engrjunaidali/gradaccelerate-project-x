@@ -8,6 +8,9 @@ import NoteForm from './note-form'
 import ViewSwitcher from './view-switcher'
 import { PageProps as InertiaPageProps } from '@inertiajs/core'
 import { NoteStatus } from '../../../app/enums/NoteStatus.js'
+
+import { Button } from "../../../inertia/components/ui.js/button"
+
 interface Note {
   id: number;
   title: string;
@@ -130,8 +133,8 @@ export default function Index() {
       return <ArrowUpDown size={14} className="text-[#98989D]" />
     }
     return sortConfig.direction === 'asc'
-      ? <ArrowUp size={14} className="text-[#0A84FF]" />
-      : <ArrowDown size={14} className="text-[#0A84FF]" />
+      ? <ArrowUp size={14} className="text-white" />
+      : <ArrowDown size={14} className="text-white" />
   }
 
   const formatSortLabel = (field: SortField) => {
@@ -179,21 +182,21 @@ export default function Index() {
             </div>
             <div className="flex items-center gap-3">
               <ViewSwitcher currentView={viewType} onChange={setViewType} />
-              <motion.button
+              <Button
                 whileTap={{ scale: 0.95 }}
                 onClick={handleLogout}
-                className="bg-red-600 text-white p-3 rounded-full shadow-lg hover:bg-red-700 transition-colors duration-200"
+                className="text-white border-white border rounded-full shadow-lg hover:bg-red-700 transition-colors duration-200"
                 title="Logout"
               >
                 <LogOut size={20} />
-              </motion.button>
-              <motion.button
+              </Button>
+              <Button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsFormVisible(!isFormVisible)}
-                className="bg-[#0A84FF] text-white p-3 rounded-full shadow-lg hover:bg-[#0A74FF] transition-colors duration-200"
+                className="text-white border-white border rounded-full shadow-lg hover:bg-[#0A74FF] transition-colors duration-200"
               >
                 {isFormVisible ? <XIcon size={20} /> : <PlusIcon size={20} />}
-              </motion.button>
+              </Button>
             </div>
           </motion.div>
 
@@ -208,17 +211,17 @@ export default function Index() {
               <span className="text-[#98989D]">Sort by:</span>
               <div className="flex gap-1">
                 {(['created_at', 'updated_at', 'title'] as SortField[]).map((field) => (
-                  <button
+                  <Button
                     key={field}
                     onClick={() => handleSort(field)}
                     className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors duration-200 ${sortConfig.field === field
-                      ? 'bg-[#0A84FF] text-white'
-                      : 'bg-[#2C2C2E] text-[#98989D] hover:bg-[#3A3A3C] hover:text-white'
+                      ? 'border border-whitetext-white'
+                      : 'text-[#98989D] hover:bg-[#3A3A3C] hover:text-white'
                       }`}
                   >
                     {formatSortLabel(field)}
                     {getSortIcon(field)}
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
@@ -363,18 +366,18 @@ export default function Index() {
             <h3 className="text-xl font-semibold text-white mb-2">Delete Note</h3>
             <p className="text-[#98989D] mb-6">Are you sure you want to delete this note? This action cannot be undone.</p>
             <div className="flex gap-3">
-              <button
+              <Button
                 onClick={() => setDeleteConfirm(null)}
                 className="flex-1 bg-[#3A3A3C] text-white px-4 py-2 rounded-lg hover:bg-[#4A4A4C]"
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
                 className="flex-1 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
               >
                 Delete
-              </button>
+              </Button>
             </div>
           </motion.div>
         </div>

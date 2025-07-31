@@ -8,6 +8,9 @@ import ViewSwitcher from './view-switcher'
 import { z } from 'zod'
 import { TodoAuth, api } from '../../lib/TodoAuth'
 
+import { Button } from "../../../inertia/components/ui.js/button"
+
+
 interface Todo {
   id: number;
   title: string;
@@ -200,21 +203,21 @@ export default function Index() {
             </div>
             <div className="flex items-center gap-3">
               <ViewSwitcher currentView={viewType} onChange={setViewType} />
-              <motion.button
+              <Button
                 whileTap={{ scale: 0.95 }}
                 onClick={handleLogout}
-                className="bg-red-600 text-white p-3 rounded-full shadow-lg hover:bg-red-700 transition-colors duration-200"
+                className="text-white border-white border rounded-full shadow-lg hover:bg-red-700 transition-colors duration-200"
                 title="Logout"
               >
                 <LogOut size={20} />
-              </motion.button>
-              <motion.button
+              </Button>
+              <Button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsFormVisible(!isFormVisible)}
-                className="bg-[#0A84FF] text-white p-3 rounded-full shadow-lg hover:bg-[#0A74FF] transition-colors duration-200"
+                className="text-white border-white border rounded-full shadow-lg hover:bg-[#0A74FF] transition-colors duration-200"
               >
                 {isFormVisible ? <XIcon size={20} /> : <PlusIcon size={20} />}
-              </motion.button>
+              </Button>
             </div>
           </motion.div>
 
