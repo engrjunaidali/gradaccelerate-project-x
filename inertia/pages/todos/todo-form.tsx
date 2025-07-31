@@ -6,16 +6,27 @@ import axios from 'axios';
 import { Button } from "../../../inertia/components/ui.js/button"
 import { Input } from "../../../inertia/components/ui.js/input"
 import { Textarea } from "../../../inertia/components/ui.js/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../inertia/components/ui.js/select"
+
+import { TodoPriority } from '../../../app/enums/TodoPriority'
+import { priorityColors } from "../../constants/priorityColors"
+
 
 interface TodoFormProps {
-  data: { title: string; content: string; labels: string[]; imageUrl?: string | null }
+  data: {
+    title: string
+    content: string
+    labels: string[]
+    imageUrl: string
+    priority: typeof TodoPriority
+  }
   setData: (field: string, value: any) => void
   submit: (e: React.FormEvent) => void
   processing: boolean
   handleKeyDown: (e: React.KeyboardEvent) => void
   isEditing?: boolean
   onCancel: () => void
-  errors?: { [key: string]: string }
+  errors: Record<string, string>
 }
 
 export default function TodoForm({
@@ -117,8 +128,24 @@ export default function TodoForm({
             onChange={(e) => setData('content', e.target.value)}
             onKeyDown={handleKeyDown}
             rows={4}
-            className="w-full"
+            className="w-full mb-3"
           />
+
+          <div className="mb-4">
+            <Select
+              value={data.priority}
+              onValueChange={(value) => setData('priority', value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={TodoPriority.HIGH} className={priorityColors['high']}>High Priority</SelectItem>
+                <SelectItem value={TodoPriority.MEDIUM} className={priorityColors['medium']}>Medium Priority</SelectItem>
+                <SelectItem value={TodoPriority.LOW} className={priorityColors['low']}>Low Priority</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="mb-3">
             <label className="block text-sm text-gray-200 mb-1">Attach Image (optional)</label>

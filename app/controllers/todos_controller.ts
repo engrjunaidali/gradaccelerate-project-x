@@ -3,6 +3,7 @@ import Todo from '#models/todo'
 
 import { ImageValidator, TodoIdValidator, CreateTodoValidator, UpdateTodoValidator } from '../validators/todo.js'
 
+import { TodoPriority } from '../enums/TodoPriority.js'
 
 import CloudinaryService from '#services/cloudinary_service'
 
@@ -51,6 +52,7 @@ export default class TodosController {
         content: data.content,
         labels: parsedLabels,
         imageUrl: data.imageUrl || '',
+        priority: data.priority.toLowerCase() || TodoPriority.MEDIUM.toLowerCase(),
         userId: user.id
       })
 
@@ -96,6 +98,7 @@ export default class TodosController {
       if (validatedData.content !== undefined) updateData.content = validatedData.content
       if (validatedData.labels !== undefined) updateData.labels = this.parseLabels(validatedData.labels)
       if (validatedData.imageUrl !== undefined) updateData.imageUrl = validatedData.imageUrl
+      if (validatedData.priority !== undefined) updateData.priority = validatedData.priority
 
       updateData.userId = user.id
 

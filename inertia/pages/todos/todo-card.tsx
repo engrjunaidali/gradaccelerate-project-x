@@ -4,13 +4,16 @@ import { DateTime } from 'luxon'
 import { router } from '@inertiajs/react'
 import { formatDate } from '../../../utils/date-utils'
 import { Button } from "../../../inertia/components/ui.js/button"
-
+import { Badge } from "../../../inertia/components/ui.js/badge"
+import { priorityColors } from "../../constants/priorityColors"
+import { TodoPriority } from "../../../app/enums/TodoPriority"
 interface Todo {
   id: number
   title: string
   content: string
   labels: string[] | null
   imageUrl: string | null
+  priority: typeof TodoPriority
   createdAt: string
   updatedAt: string | null
 }
@@ -36,9 +39,13 @@ export default function TodoCard({ todo, viewType, onEdit, onDelete }: TodoCardP
         }`}
     >
       <div className={viewType === 'list' ? 'flex-1' : ''}>
-        <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1">
+        <Badge variant="outline" className={priorityColors[todo.priority.toLowerCase()]} >
+          {todo.priority}
+        </Badge>
+        <h3 className="text-lg font-semibold text-white mb-2 mt-3 line-clamp-1">
           {todo.title}
         </h3>
+
 
 
 

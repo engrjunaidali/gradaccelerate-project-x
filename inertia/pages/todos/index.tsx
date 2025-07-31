@@ -9,6 +9,7 @@ import { z } from 'zod'
 import { TodoAuth, api } from '../../lib/TodoAuth'
 
 import { Button } from "../../../inertia/components/ui.js/button"
+import { TodoPriority } from '../../../app/enums/TodoPriority'
 
 
 interface Todo {
@@ -17,6 +18,7 @@ interface Todo {
   content: string;
   labels: string[] | null;
   imageUrl: string | null;
+  priority: typeof TodoPriority;
   createdAt: string;
   updatedAt: string | null;
 }
@@ -34,8 +36,32 @@ export default function Index() {
     title: '',
     content: '',
     labels: [] as string[],
-    imageUrl: ''
+    imageUrl: '',
+    priority: TodoPriority.MEDIUM
   })
+
+  const resetForm = () => {
+    setData({
+      title: '',
+      content: '',
+      labels: [],
+      imageUrl: '',
+      priority: TodoPriority.MEDIUM
+    })
+    setErrors({})
+  }
+
+  const handleEdit = (todo: Todo) => {
+    setData({
+      title: todo.title,
+      content: todo.content,
+      labels: todo.labels || [],
+      imageUrl: todo.imageUrl || '',
+      priority: todo?.priority || TodoPriority.MEDIUM
+    })
+    setEditingTodo(todo)
+    setIsFormVisible(true)
+  }
 
   // Load todos on component mount
   useEffect(() => {
@@ -60,6 +86,7 @@ export default function Index() {
     content: z.string(),
     labels: z.array(z.string().trim().min(1)).optional().default([]),
     imageUrl: z.string().url('Invalid URL').optional().or(z.literal('')).nullable(),
+    priority: z.enum([TodoPriority.HIGH, TodoPriority.MEDIUM, TodoPriority.LOW]),
     user_id: z.number().optional()
   })
 
@@ -116,17 +143,6 @@ export default function Index() {
       labels: [],
       imageUrl: ''
     })
-  }
-
-  const handleEdit = (todo: Todo) => {
-    setEditingTodo(todo)
-    setData({
-      title: todo.title,
-      content: todo.content,
-      labels: todo.labels || [],
-      imageUrl: todo.imageUrl || ''
-    })
-    setIsFormVisible(true)
   }
 
   const handleDelete = async (id: number) => {
