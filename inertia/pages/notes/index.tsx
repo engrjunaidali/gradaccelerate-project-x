@@ -1,6 +1,5 @@
-import { Head, useForm, Link, router, usePage } from '@inertiajs/react'
+import { Head, Link, usePage } from '@inertiajs/react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState } from 'react'
 import { PlusIcon, XIcon, ArrowLeft, ChevronLeftIcon, ChevronRightIcon, ArrowUpDown, ArrowUp, ArrowDown, LogOut } from 'lucide-react'
 import 'highlight.js/styles/github-dark.css'
 import NoteCard from './note-card'
@@ -8,10 +7,10 @@ import NoteForm from './note-form'
 import ViewSwitcher from './view-switcher'
 import { PageProps as InertiaPageProps } from '@inertiajs/core'
 import { NoteStatus } from '../../../app/enums/NoteStatus.js'
+import { useNotesStore } from '../../stores/useNotesStore' // Adjust path as needed
 
 import { Button } from "../../../inertia/components/ui.js/button"
 import { Input } from "../../../inertia/components/ui.js/input"
-
 
 interface Note {
   id: number;
@@ -21,6 +20,7 @@ interface Note {
   pinned: boolean;
   createdAt: string;
   updatedAt: string | null;
+  labels?: string[];
 }
 
 interface PaginationMeta {
@@ -37,7 +37,6 @@ interface NotesData {
   meta: PaginationMeta;
 }
 
-type ViewType = 'grid' | 'list'
 type SortField = 'created_at' | 'updated_at' | 'title'
 type SortDirection = 'asc' | 'desc'
 
@@ -45,7 +44,6 @@ interface SortConfig {
   field: SortField;
   direction: SortDirection;
 }
-
 
 interface PageProps extends InertiaPageProps {
   notes: NotesData;
@@ -60,91 +58,29 @@ interface PageProps extends InertiaPageProps {
 export default function Index() {
   const { notes: notesData, currentSort, user } = usePage<PageProps>().props
 
-  const [isFormVisible, setIsFormVisible] = useState(false)
-  const [viewType, setViewType] = useState<ViewType>('grid')
-  const [selectedLabel, setSelectedLabel] = useState<string | null>(null)
-  const [searchQuery, setSearchQuery] = useState('')
-  const [sortConfig, setSortConfig] = useState<SortConfig>({
-    field: 'created_at',
-    direction: 'desc'
-  })
-
-  const [deleteConfirm, setDeleteConfirm] = useState<number | null>(null)
-  const [isEditing, setIsEditing] = useState(false)
-  const [editingNoteId, setEditingNoteId] = useState<number | null>(null)
-
-  const handleEdit = (note: Note) => {
-    setIsEditing(true)
-    setEditingNoteId(note.id)
-    setIsFormVisible(true)
-  }
-
-  // Delete a note
-  const handleDelete = (id: number) => {
-    router.delete(`/notes/${id}`, {
-      preserveState: true,
-      preserveScroll: true,
-      onSuccess: () => {
-        setDeleteConfirm(null)
-      }
-    })
-  }
-
-  const handlePageChange = (page: number) => {
-    router.get('/notes', {
-      page,
-      sort: sortConfig.field,
-      direction: sortConfig.direction,
-      search: searchQuery
-    }, {
-      preserveState: true,
-      preserveScroll: true
-    })
-  }
-
-  const handleSearch = (value: string) => {
-    setSearchQuery(value)
-    router.get('/notes', {
-      page: 1,
-      sort: sortConfig.field,
-      direction: sortConfig.direction,
-      search: value
-    }, {
-      preserveState: true,
-      preserveScroll: true
-    })
-  }
-
-  const handleTogglePin = (id: number) => {
-    router.patch(`/notes/${id}/toggle-pin`, {}, {
-      preserveState: true,
-      preserveScroll: true,
-      only: ['notes']
-    })
-  }
-
-  const handleLogout = () => {
-    router.post('/auth/session/logout', {}, {
-      onSuccess: () => {
-        // Redirect will be handled by the controller
-      }
-    })
-  }
-
-  const handleSort = (field: SortField) => {
-    const newDirection: SortDirection = sortConfig.field === field && sortConfig.direction === 'desc' ? 'asc' : 'desc'
-    const newSortConfig = { field, direction: newDirection }
-    setSortConfig(newSortConfig)
-
-    router.get('/notes', {
-      page: notesData.meta.current_page,
-      sort: field,
-      direction: newDirection
-    }, {
-      preserveState: true,
-      preserveScroll: true
-    })
-  }
+  // Zustand store
+  const {
+    isFormVisible,
+    viewType,
+    selectedLabel,
+    searchQuery,
+    sortConfig,
+    deleteConfirm,
+    isEditing,
+    editingNoteId,
+    setIsFormVisible,
+    setViewType,
+    setSelectedLabel,
+    handleEdit,
+    handleDelete,
+    handlePageChange,
+    handleSearch,
+    handleTogglePin,
+    handleSort,
+    handleLogout,
+    setDeleteConfirm,
+    closeForm
+  } = useNotesStore()
 
   const getSortIcon = (field: SortField) => {
     if (sortConfig.field !== field) {
@@ -163,6 +99,18 @@ export default function Index() {
       default: return field
     }
   }
+
+  const toggleForm = () => {
+    if (isFormVisible && (isEditing || editingNoteId)) {
+      closeForm()
+    } else {
+      setIsFormVisible(!isFormVisible)
+    }
+  }
+
+  const filteredNotes = notesData.data.filter(note =>
+    !selectedLabel || (note.labels && note.labels.includes(selectedLabel))
+  )
 
   return (
     <>
@@ -210,7 +158,7 @@ export default function Index() {
               </Button>
               <Button
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setIsFormVisible(!isFormVisible)}
+                onClick={toggleForm}
                 className="text-white border-white border rounded-full shadow-lg hover:bg-[#0A74FF] transition-colors duration-200"
               >
                 {isFormVisible ? <XIcon size={20} /> : <PlusIcon size={20} />}
@@ -271,9 +219,9 @@ export default function Index() {
                   {(['created_at', 'updated_at', 'title'] as SortField[]).map((field) => (
                     <Button
                       key={field}
-                      onClick={() => handleSort(field)}
+                      onClick={() => handleSort(field, notesData.meta.current_page)}
                       className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors duration-200 ${sortConfig.field === field
-                        ? 'border border-whitetext-white'
+                        ? 'border border-white text-white'
                         : 'text-[#98989D] hover:bg-[#3A3A3C] hover:text-white'
                         }`}
                     >
@@ -285,7 +233,6 @@ export default function Index() {
               </div>
             </div>
           </motion.div>
-
 
           <AnimatePresence>
             {isFormVisible && (
@@ -311,16 +258,8 @@ export default function Index() {
                 <NoteForm
                   isEditing={isEditing}
                   editingNote={editingNoteId ? notesData.data.find(n => n.id === editingNoteId) : undefined}
-                  onCancel={() => {
-                    setIsEditing(false)
-                    setEditingNoteId(null)
-                    setIsFormVisible(false)
-                  }}
-                  onSuccess={() => {
-                    setIsEditing(false)
-                    setEditingNoteId(null)
-                    setIsFormVisible(false)
-                  }}
+                  onCancel={closeForm}
+                  onSuccess={closeForm}
                 />
               </motion.div>
             )}
@@ -336,9 +275,7 @@ export default function Index() {
             }
           >
             <AnimatePresence>
-              {notesData.data
-                .filter(note => !selectedLabel || (note.labels && note.labels.includes(selectedLabel)))
-                .map((note, index) => (
+              {filteredNotes.map((note, index) => (
                 <motion.div
                   key={note.id}
                   initial={{ opacity: 0, y: 20 }}
@@ -358,11 +295,9 @@ export default function Index() {
                     onTogglePin={() => handleTogglePin(note.id)}
                   />
                 </motion.div>
-
               ))}
             </AnimatePresence>
           </motion.div>
-
 
           {/* Simple Pagination */}
           {notesData.meta.last_page > 1 && (
@@ -374,7 +309,7 @@ export default function Index() {
             >
               {/* Previous Button */}
               <button
-                onClick={() => handlePageChange(notesData.meta.current_page - 1)}
+                onClick={() => handlePageChange(notesData.meta.current_page - 1, notesData)}
                 disabled={notesData.meta.current_page === 1}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#2C2C2E] text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#3A3A3C] transition-colors duration-200"
               >
@@ -389,7 +324,7 @@ export default function Index() {
 
               {/* Next Button */}
               <button
-                onClick={() => handlePageChange(notesData.meta.current_page + 1)}
+                onClick={() => handlePageChange(notesData.meta.current_page + 1, notesData)}
                 disabled={notesData.meta.current_page === notesData.meta.last_page}
                 className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[#2C2C2E] text-white disabled:opacity-50 disabled:cursor-not-allowed hover:bg-[#3A3A3C] transition-colors duration-200"
               >
@@ -398,7 +333,6 @@ export default function Index() {
               </button>
             </motion.div>
           )}
-
 
           {/* Empty State */}
           {notesData.data.length === 0 && (
@@ -412,10 +346,10 @@ export default function Index() {
               </button>
             </div>
           )}
-
         </div>
       </div>
 
+      {/* Delete Confirmation Modal */}
       {deleteConfirm && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
           <motion.div
