@@ -49,11 +49,11 @@ export default function TodoCard({ todo, viewType, onEdit, onDelete }: TodoCardP
           {todo.title}
         </h3>
 
-        <p className={`text-gray-300 mb-3 ${viewType === 'list' ? 'line-clamp-1' : 'line-clamp-3'}`}>
+        <p className={`text-gray-300 mb-2 ${viewType === 'list' ? 'line-clamp-1' : 'line-clamp-3'}`}>
           {todo.content}
         </p>
 
-        <div className={`inline-block px-2 py-1  mb-3 rounded-full text-xs ${TodoStatusColors[todo.status]}`}>
+        <div className={`inline-block px-2 py-1 mb-2  rounded-full text-xs ${TodoStatusColors[todo.status]}`}>
           {todo.status}
         </div>
 

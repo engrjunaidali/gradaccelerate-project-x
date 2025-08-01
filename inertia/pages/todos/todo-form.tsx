@@ -12,6 +12,7 @@ import { TodoPriority } from '../../../app/enums/TodoPriority'
 import { TodoStatus } from '../../../app/enums/TodoStatus'
 
 import { priorityColors } from "../../constants/priorityColors"
+import { TodoStatusColors } from "../../constants/TodoStatusColors"
 
 
 interface TodoFormProps {
@@ -135,22 +136,21 @@ export default function TodoForm({
           />
 
           <div className="mb-4">
-            <label className="block text-sm font-medium text-[#98989D] mb-2">
-              Status
-            </label>
-            <motion.select
-              whileFocus={{ scale: 1.01 }}
-              transition={{ duration: 0.2 }}
+            <Select
               value={data.status}
-              onChange={(e) => setData('status', e.target.value)}
-              className="w-full px-4 py-3 bg-[#3A3A3C] text-white placeholder-[#98989D] rounded-lg border-none focus:ring-2 focus:ring-[#0A84FF] focus:outline-none transition-all duration-200"
-              disabled={processing}
+              onValueChange={(value) => setData('status', value)}
             >
-              <option value={TodoStatus.PENDING}>Pending</option>
-              <option value={TodoStatus.IN_PROGRESS}>In Progress</option>
-              <option value={TodoStatus.COMPLETED}>Completed</option>
-            </motion.select>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={TodoStatus.PENDING} className={TodoStatusColors[TodoStatus.PENDING]}>Pending</SelectItem>
+                <SelectItem value={TodoStatus.IN_PROGRESS} className={TodoStatusColors[TodoStatus.IN_PROGRESS]}>In Progress</SelectItem>
+                <SelectItem value={TodoStatus.COMPLETED} className={TodoStatusColors[TodoStatus.COMPLETED]}>Completed</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
+
 
           <div className="mb-4">
             <Select
