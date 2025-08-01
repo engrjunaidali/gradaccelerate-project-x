@@ -14,6 +14,7 @@ export default class NotesController {
     const perPage = 6
     const sortField = request.input('sort', 'created_at')
     const sortDirection = request.input('direction', 'desc')
+    const searchQuery = request.input('search', '')
 
     // Validate sort field
     const allowedSortFields = ['created_at', 'updated_at', 'title']
@@ -26,6 +27,14 @@ export default class NotesController {
       .where('user_id', user.id)
       .orderBy('pinned', 'desc')
       .orderBy(validSortField, validSortDirection)
+
+    if (searchQuery) {
+      query = query.where((builder) => {
+        builder
+          .whereILike('title', `%${searchQuery}%`)
+          .orWhereILike('content', `%${searchQuery}%`)
+      })
+    }
 
     if (validSortField !== 'created_at') {
       query = query.orderBy('created_at', 'desc')

@@ -10,6 +10,8 @@ import { PageProps as InertiaPageProps } from '@inertiajs/core'
 import { NoteStatus } from '../../../app/enums/NoteStatus.js'
 
 import { Button } from "../../../inertia/components/ui.js/button"
+import { Input } from "../../../inertia/components/ui.js/input"
+
 
 interface Note {
   id: number;
@@ -61,6 +63,7 @@ export default function Index() {
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [viewType, setViewType] = useState<ViewType>('grid')
   const [selectedLabel, setSelectedLabel] = useState<string | null>(null)
+  const [searchQuery, setSearchQuery] = useState('')
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     field: 'created_at',
     direction: 'desc'
@@ -91,7 +94,21 @@ export default function Index() {
     router.get('/notes', {
       page,
       sort: sortConfig.field,
-      direction: sortConfig.direction
+      direction: sortConfig.direction,
+      search: searchQuery
+    }, {
+      preserveState: true,
+      preserveScroll: true
+    })
+  }
+
+  const handleSearch = (value: string) => {
+    setSearchQuery(value)
+    router.get('/notes', {
+      page: 1,
+      sort: sortConfig.field,
+      direction: sortConfig.direction,
+      search: value
     }, {
       preserveState: true,
       preserveScroll: true
@@ -208,22 +225,63 @@ export default function Index() {
             transition={{ delay: 0.1 }}
             className="mb-6"
           >
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-[#98989D]">Sort by:</span>
-              <div className="flex gap-1">
-                {(['created_at', 'updated_at', 'title'] as SortField[]).map((field) => (
-                  <Button
-                    key={field}
-                    onClick={() => handleSort(field)}
-                    className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors duration-200 ${sortConfig.field === field
-                      ? 'border border-whitetext-white'
-                      : 'text-[#98989D] hover:bg-[#3A3A3C] hover:text-white'
-                      }`}
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-4">
+                <div className="flex-1">
+                  <Input
+                    type="text"
+                    placeholder="Search notes..."
+                    value={searchQuery}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="w-full px-4 py-2 bg-[#3A3A3C] text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0A84FF] transition-all duration-200"
+                  />
+                </div>
+              </div>
+              <div className="mb-4">
+                <div className="flex flex-wrap gap-2">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setSelectedLabel(null)}
+                    className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${!selectedLabel
+                      ? 'bg-[#0A84FF] text-white'
+                      : 'bg-[#3A3A3C] text-[#98989D] hover:bg-[#4A4A4C]'}`}
                   >
-                    {formatSortLabel(field)}
-                    {getSortIcon(field)}
-                  </Button>
-                ))}
+                    All
+                  </motion.button>
+                  {['Work', 'Personal', 'Important', 'Ideas', 'Tasks'].map((label) => (
+                    <motion.button
+                      key={label}
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => setSelectedLabel(label)}
+                      className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${selectedLabel === label
+                        ? 'bg-[#0A84FF] text-white'
+                        : 'bg-[#3A3A3C] text-[#98989D] hover:bg-[#4A4A4C]'}`}
+                    >
+                      {label}
+                    </motion.button>
+                  ))}
+                </div>
+              </div>
+              {/* sort */}
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-[#98989D]">Sort by:</span>
+                <div className="flex gap-1">
+                  {(['created_at', 'updated_at', 'title'] as SortField[]).map((field) => (
+                    <Button
+                      key={field}
+                      onClick={() => handleSort(field)}
+                      className={`flex items-center gap-2 px-3 py-1.5 rounded-lg transition-colors duration-200 ${sortConfig.field === field
+                        ? 'border border-whitetext-white'
+                        : 'text-[#98989D] hover:bg-[#3A3A3C] hover:text-white'
+                        }`}
+                    >
+                      {formatSortLabel(field)}
+                      {getSortIcon(field)}
+                    </Button>
+                  ))}
+                </div>
               </div>
             </div>
           </motion.div>
@@ -267,34 +325,6 @@ export default function Index() {
               </motion.div>
             )}
           </AnimatePresence>
-
-          <div className="mb-4">
-            <div className="flex flex-wrap gap-2">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setSelectedLabel(null)}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${!selectedLabel
-                  ? 'bg-[#0A84FF] text-white'
-                  : 'bg-[#3A3A3C] text-[#98989D] hover:bg-[#4A4A4C]'}`}
-              >
-                All
-              </motion.button>
-              {['Work', 'Personal', 'Important', 'Ideas', 'Tasks'].map((label) => (
-                <motion.button
-                  key={label}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => setSelectedLabel(label)}
-                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${selectedLabel === label
-                    ? 'bg-[#0A84FF] text-white'
-                    : 'bg-[#3A3A3C] text-[#98989D] hover:bg-[#4A4A4C]'}`}
-                >
-                  {label}
-                </motion.button>
-              ))}
-            </div>
-          </div>
 
           <motion.div
             initial={{ opacity: 0 }}
