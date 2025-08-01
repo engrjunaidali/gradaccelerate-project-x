@@ -103,12 +103,14 @@ export default class NotesController {
    * Store a new note
    */
   store = asyncHandler(async ({ request, response, auth }: HttpContext) => {
-    const data = request.only(['title', 'content', 'status'])
+    const data = request.only(['title', 'content', 'status', 'labels'])
     const user = auth.user!
 
     await Note.create({
-      ...data,
+      title: data.title,
+      content: data.content,
       status: data.status ?? NoteStatus.PENDING,
+      labels: data.labels ?? [],
       userId: user.id,
     })
 
@@ -126,8 +128,13 @@ export default class NotesController {
       return response.notFound({ message: 'Note not found' })
     }
 
-    const data = request.only(['title', 'content', 'status'])
-    await note.merge(data).save()
+    const data = request.only(['title', 'content', 'status', 'labels'])
+    await note.merge({
+      title: data.title,
+      content: data.content,
+      status: data.status,
+      labels: data.labels ?? note.labels
+    }).save()
     return response.redirect().back()
   })
 

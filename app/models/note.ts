@@ -20,6 +20,12 @@ export default class Note extends BaseModel {
   @column()
   declare pinned: boolean
 
+  @column({
+    prepare: (value: string[]) => JSON.stringify(value),
+    consume: (value: string) => value ? JSON.parse(value) : []
+  })
+  declare labels: string[]
+
   @column()
   declare userId: number
 

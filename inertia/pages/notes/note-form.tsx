@@ -50,6 +50,7 @@ interface NoteFormProps {
     content: string
     status: typeof NoteStatus
     pinned: boolean
+    labels: string[]
   }
   onCancel?: () => void
   onSuccess?: () => void
@@ -78,7 +79,8 @@ export default function NoteForm({
     title: editingNote?.title || '',
     content: editingNote?.content || '',
     status: editingNote?.status || NoteStatus.PENDING,
-    pinned: editingNote?.pinned || false
+    pinned: editingNote?.pinned || false,
+    labels: editingNote?.labels || []
   })
 
   const handleShare = async () => {
@@ -329,6 +331,36 @@ Slash Commands:
             <option value={NoteStatus.IN_PROGRESS}>In Progress</option>
             <option value={NoteStatus.COMPLETED}>Completed</option>
           </motion.select>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-sm font-medium text-[#98989D] mb-2">
+            Labels
+          </label>
+          <div className="flex flex-wrap gap-2">
+            {['Work', 'Personal', 'Important', 'Ideas', 'Tasks'].map((label) => (
+              <motion.button
+                key={label}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                type="button"
+                onClick={() => {
+                  const currentLabels = new Set(data.labels)
+                  if (currentLabels.has(label)) {
+                    currentLabels.delete(label)
+                  } else {
+                    currentLabels.add(label)
+                  }
+                  setData('labels', Array.from(currentLabels))
+                }}
+                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${data.labels.includes(label)
+                  ? 'bg-[#0A84FF] text-white'
+                  : 'bg-[#3A3A3C] text-[#98989D] hover:bg-[#4A4A4C]'}`}
+              >
+                {label}
+              </motion.button>
+            ))}
+          </div>
         </div>
 
         <Button

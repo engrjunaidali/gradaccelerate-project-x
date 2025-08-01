@@ -60,6 +60,7 @@ export default function Index() {
 
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [viewType, setViewType] = useState<ViewType>('grid')
+  const [selectedLabel, setSelectedLabel] = useState<string | null>(null)
   const [sortConfig, setSortConfig] = useState<SortConfig>({
     field: 'created_at',
     direction: 'desc'
@@ -267,6 +268,34 @@ export default function Index() {
             )}
           </AnimatePresence>
 
+          <div className="mb-4">
+            <div className="flex flex-wrap gap-2">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setSelectedLabel(null)}
+                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${!selectedLabel
+                  ? 'bg-[#0A84FF] text-white'
+                  : 'bg-[#3A3A3C] text-[#98989D] hover:bg-[#4A4A4C]'}`}
+              >
+                All
+              </motion.button>
+              {['Work', 'Personal', 'Important', 'Ideas', 'Tasks'].map((label) => (
+                <motion.button
+                  key={label}
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setSelectedLabel(label)}
+                  className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${selectedLabel === label
+                    ? 'bg-[#0A84FF] text-white'
+                    : 'bg-[#3A3A3C] text-[#98989D] hover:bg-[#4A4A4C]'}`}
+                >
+                  {label}
+                </motion.button>
+              ))}
+            </div>
+          </div>
+
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -277,7 +306,9 @@ export default function Index() {
             }
           >
             <AnimatePresence>
-              {notesData.data.map((note, index) => (
+              {notesData.data
+                .filter(note => !selectedLabel || (note.labels && note.labels.includes(selectedLabel)))
+                .map((note, index) => (
                 <motion.div
                   key={note.id}
                   initial={{ opacity: 0, y: 20 }}

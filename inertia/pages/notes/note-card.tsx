@@ -15,6 +15,7 @@ interface Note {
   content: string;
   status: typeof NoteStatus;
   pinned: boolean;
+  labels: string[];
   createdAt: string;
   updatedAt: string | null;
 }
@@ -65,6 +66,7 @@ export default function NoteCard({ note, viewType, onDelete, onEdit, onTogglePin
       <div className={`p-5 ${viewType === 'list' ? 'flex items-center gap-4' : ''}`}>
         <div className={viewType === 'list' ? 'flex-1' : ''}>
           <div className="flex justify-between items-start mb-2">
+            <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2">
               <h2 className={`text-lg font-medium ${note.pinned ? 'text-yellow-100' : 'text-white'}`}>
                 {note.title}
@@ -73,6 +75,17 @@ export default function NoteCard({ note, viewType, onDelete, onEdit, onTogglePin
                 <PinIcon size={14} className="text-yellow-500" />
               ) : null}
             </div>
+            <div className="flex flex-wrap gap-1">
+              {note.labels && note.labels.map((label) => (
+                <span
+                  key={label}
+                  className="px-2 py-0.5 text-xs font-medium rounded-full bg-[#0A84FF] bg-opacity-20 text-white "
+                >
+                  {label}
+                </span>
+              ))}
+            </div>
+          </div>
 
           </div>
 
