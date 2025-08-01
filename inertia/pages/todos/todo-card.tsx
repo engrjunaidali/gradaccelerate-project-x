@@ -7,10 +7,13 @@ import { Button } from "../../../inertia/components/ui.js/button"
 import { Badge } from "../../../inertia/components/ui.js/badge"
 import { priorityColors } from "../../constants/priorityColors"
 import { TodoPriority } from "../../../app/enums/TodoPriority"
+import { TodoStatus } from "../../../app/enums/TodoStatus"
+import { TodoStatusColors } from "../../constants/TodoStatusColors"
 interface Todo {
   id: number
   title: string
   content: string
+  status: typeof TodoStatus
   labels: string[] | null
   imageUrl: string | null
   priority: typeof TodoPriority
@@ -46,12 +49,14 @@ export default function TodoCard({ todo, viewType, onEdit, onDelete }: TodoCardP
           {todo.title}
         </h3>
 
-
-
-
         <p className={`text-gray-300 mb-3 ${viewType === 'list' ? 'line-clamp-1' : 'line-clamp-3'}`}>
           {todo.content}
         </p>
+
+        <div className={`inline-block px-2 py-1  mb-3 rounded-full text-xs ${TodoStatusColors[todo.status]}`}>
+          {todo.status}
+        </div>
+
         <div className="flex items-center gap-2 text-xs text-gray-500">
           <Calendar size={12} />
           <span>

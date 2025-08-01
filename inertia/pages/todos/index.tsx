@@ -10,12 +10,13 @@ import { TodoAuth, api } from '../../lib/TodoAuth'
 
 import { Button } from "../../../inertia/components/ui.js/button"
 import { TodoPriority } from '../../../app/enums/TodoPriority'
-
+import { TodoStatus } from '../../../app/enums/TodoStatus'
 
 interface Todo {
   id: number;
   title: string;
   content: string;
+  status: typeof TodoStatus;
   labels: string[] | null;
   imageUrl: string | null;
   priority: typeof TodoPriority;
@@ -35,6 +36,7 @@ export default function Index() {
   const [data, setData] = useState({
     title: '',
     content: '',
+    status: TodoStatus.PENDING,
     labels: [] as string[],
     imageUrl: '',
     priority: TodoPriority.MEDIUM
@@ -44,6 +46,7 @@ export default function Index() {
     setData({
       title: '',
       content: '',
+      status: TodoStatus.PENDING,
       labels: [],
       imageUrl: '',
       priority: TodoPriority.MEDIUM
@@ -55,6 +58,7 @@ export default function Index() {
     setData({
       title: todo.title,
       content: todo.content,
+      status: todo?.status || TodoStatus.PENDING,
       labels: todo.labels || [],
       imageUrl: todo.imageUrl || '',
       priority: todo?.priority || TodoPriority.MEDIUM
@@ -84,6 +88,7 @@ export default function Index() {
   const TodoSchema = z.object({
     title: z.string().trim().min(1, 'Title is required'),
     content: z.string(),
+    status: z.enum([TodoStatus.PENDING, TodoStatus.IN_PROGRESS, TodoStatus.COMPLETED]),
     labels: z.array(z.string().trim().min(1)).optional().default([]),
     imageUrl: z.string().url('Invalid URL').optional().or(z.literal('')).nullable(),
     priority: z.enum([TodoPriority.HIGH, TodoPriority.MEDIUM, TodoPriority.LOW]),

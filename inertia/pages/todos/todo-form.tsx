@@ -9,6 +9,8 @@ import { Textarea } from "../../../inertia/components/ui.js/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../inertia/components/ui.js/select"
 
 import { TodoPriority } from '../../../app/enums/TodoPriority'
+import { TodoStatus } from '../../../app/enums/TodoStatus'
+
 import { priorityColors } from "../../constants/priorityColors"
 
 
@@ -16,6 +18,7 @@ interface TodoFormProps {
   data: {
     title: string
     content: string
+    status: typeof TodoStatus
     labels: string[]
     imageUrl: string
     priority: typeof TodoPriority
@@ -130,6 +133,24 @@ export default function TodoForm({
             rows={4}
             className="w-full mb-3"
           />
+
+          <div className="mb-4">
+            <label className="block text-sm font-medium text-[#98989D] mb-2">
+              Status
+            </label>
+            <motion.select
+              whileFocus={{ scale: 1.01 }}
+              transition={{ duration: 0.2 }}
+              value={data.status}
+              onChange={(e) => setData('status', e.target.value)}
+              className="w-full px-4 py-3 bg-[#3A3A3C] text-white placeholder-[#98989D] rounded-lg border-none focus:ring-2 focus:ring-[#0A84FF] focus:outline-none transition-all duration-200"
+              disabled={processing}
+            >
+              <option value={TodoStatus.PENDING}>Pending</option>
+              <option value={TodoStatus.IN_PROGRESS}>In Progress</option>
+              <option value={TodoStatus.COMPLETED}>Completed</option>
+            </motion.select>
+          </div>
 
           <div className="mb-4">
             <Select

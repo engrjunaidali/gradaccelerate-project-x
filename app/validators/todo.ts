@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { TodoPriority } from '../enums/TodoPriority.js'
+import { TodoStatus } from '../enums/TodoStatus.js'
 
 export const TodoIdValidator = z.object({
   id: z.number().int().positive()
@@ -8,6 +9,7 @@ export const TodoIdValidator = z.object({
 export const CreateTodoValidator = z.object({
   title: z.string().min(1, 'Title is required'),
   content: z.string().min(1, 'Content is required'),
+  status: z.enum([TodoStatus.PENDING, TodoStatus.IN_PROGRESS, TodoStatus.COMPLETED]),
   labels: z.array(z.string()).optional(),
   imageUrl: z.string().url().optional().nullable(),
   priority: z.enum([TodoPriority.HIGH, TodoPriority.MEDIUM, TodoPriority.LOW])
@@ -16,6 +18,7 @@ export const CreateTodoValidator = z.object({
 export const UpdateTodoValidator = z.object({
   title: z.string().min(1, 'Title is required').optional(),
   content: z.string().min(1, 'Content is required').optional(),
+  status: z.enum([TodoStatus.PENDING, TodoStatus.IN_PROGRESS, TodoStatus.COMPLETED]),
   labels: z.array(z.string()).optional(),
   imageUrl: z.string().url().optional().nullable(),
   priority: z.enum([TodoPriority.HIGH, TodoPriority.MEDIUM, TodoPriority.LOW])
