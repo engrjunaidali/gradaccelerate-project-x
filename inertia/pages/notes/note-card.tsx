@@ -1,11 +1,11 @@
 import { motion } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
 import { EditIcon, PinIcon } from 'lucide-react'
-import ReactMarkdown from 'react-markdown'  // Add this import
-import remarkGfm from 'remark-gfm'  // Add this import
+import ReactMarkdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
 import { NoteStatus } from '../../../app/enums/NoteStatus.js'
-
+import { useNotesStore } from '../../stores/useNotesStore'
 import { Button } from "../../../inertia/components/ui.js/button"
 
 
@@ -22,23 +22,10 @@ interface Note {
 
 interface NoteCardProps {
   note: Note
-  viewType: 'grid' | 'list'
-  onDelete: (id: number) => void
-  onEdit: (note: Note) => void
-  onTogglePin: (id: number) => void
 }
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case NoteStatus.PENDING: return 'bg-gray-500/20 text-gray-300'
-    case NoteStatus.IN_PROGRESS: return 'bg-blue-500/20 text-blue-300'
-    case NoteStatus.COMPLETED: return 'bg-green-500/20 text-green-300'
-    default: return 'bg-gray-500/20 text-gray-300'
-  }
-}
-
-
-export default function NoteCard({ note, viewType, onDelete, onEdit, onTogglePin }: NoteCardProps) {
+export default function NoteCard({ note }: NoteCardProps) {
+  const { viewType, getStatusColor, handleEdit, handleDelete, handleTogglePin } = useNotesStore()
   const timeAgo = formatDistanceToNow(new Date(note.createdAt), { addSuffix: true })
 
   return (
@@ -98,8 +85,9 @@ export default function NoteCard({ note, viewType, onDelete, onEdit, onTogglePin
                 h1: ({ children }) => <h1 className="text-base font-bold mb-1 text-white">{children}</h1>,
                 h2: ({ children }) => <h2 className="text-sm font-semibold mb-1 text-white">{children}</h2>,
                 h3: ({ children }) => <h3 className="text-sm font-medium mb-1 text-white">{children}</h3>,
-                code: ({ inline, children, ...props }) =>
-                  inline ? (
+                code: ({ children, ...props }) => {
+                  const isInline = !String(children).includes('\n')
+                  return isInline ? (
                     <code className="bg-[#3A3A3C] text-[#FF6B6B] px-1 py-0.5 rounded text-xs" {...props}>
                       {children}
                     </code>
@@ -107,7 +95,8 @@ export default function NoteCard({ note, viewType, onDelete, onEdit, onTogglePin
                     <code className="block bg-[#1C1C1E] text-[#E0E0E0] p-2 rounded text-xs overflow-x-auto" {...props}>
                       {children}
                     </code>
-                  ),
+                  )
+                },
                 blockquote: ({ children }) => (
                   <blockquote className="border-l-2 border-[#0A84FF] pl-2 italic text-[#B0B0B0]">
                     {children}
@@ -129,8 +118,8 @@ export default function NoteCard({ note, viewType, onDelete, onEdit, onTogglePin
             </ReactMarkdown>
           </div>
 
-          <div className={`inline-block px-2 py-1 rounded-full text-xs ${getStatusColor(note.status ?? '')}`}>
-            {note.status}
+          <div className={`inline-block px-2 py-1 rounded-full text-xs ${getStatusColor(String(note.status ?? ''))}`}>
+            {String(note.status)}
           </div>
 
           <span className="text-xs px-2 text-[#98989D]">{timeAgo}</span>
@@ -144,7 +133,7 @@ export default function NoteCard({ note, viewType, onDelete, onEdit, onTogglePin
         <Button
           onClick={(e) => {
             e.stopPropagation();
-            onTogglePin(note.id);
+            handleTogglePin(note.id);
           }}
           className={`p-1.5 rounded-full transition-colors duration-200 ${note.pinned
             ? 'bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30'
@@ -157,7 +146,7 @@ export default function NoteCard({ note, viewType, onDelete, onEdit, onTogglePin
         <Button
           onClick={(e) => {
             e.stopPropagation();
-            onEdit(note);
+            handleEdit(note);
           }}
           className="p-1.5 rounded-full bg-[#3A3A3C] text-[#98989D] hover:bg-[#4A4A4C] hover:text-white transition-colors"
           title="Edit note"
@@ -170,7 +159,7 @@ export default function NoteCard({ note, viewType, onDelete, onEdit, onTogglePin
         <Button
           onClick={(e) => {
             e.stopPropagation();
-            onDelete(note.id);
+            handleDelete(note.id);
           }}
           className="p-1.5 rounded-full bg-[#3A3A3C] text-[#98989D] hover:bg-red-500 hover:text-white transition-colors"
           title="Delete note"

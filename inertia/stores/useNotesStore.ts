@@ -93,6 +93,9 @@ interface NotesState {
   processing: boolean;
   errors: Record<string, string>;
 
+  // Note Card Utilities
+  getStatusColor: (status: string) => string;
+
   // Actions
   setIsFormVisible: (visible: boolean) => void;
   setViewType: (type: ViewType) => void;
@@ -159,6 +162,16 @@ export const useNotesStore = create<NotesState>((set, get) => ({
   },
   processing: false,
   errors: {},
+
+  // Note Card Utilities
+  getStatusColor: (status: string) => {
+    switch (status) {
+      case NoteStatus.PENDING: return 'bg-gray-500/20 text-gray-300'
+      case NoteStatus.IN_PROGRESS: return 'bg-blue-500/20 text-blue-300'
+      case NoteStatus.COMPLETED: return 'bg-green-500/20 text-green-300'
+      default: return 'bg-gray-500/20 text-gray-300'
+    }
+  },
 
   // Simple setters
   setIsFormVisible: (visible) => set({ isFormVisible: visible }),
