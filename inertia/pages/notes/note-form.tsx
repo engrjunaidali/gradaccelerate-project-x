@@ -1,46 +1,17 @@
 import type React from "react"
 import { motion } from "framer-motion"
 import { EyeIcon, EditIcon, Share2Icon, Image } from 'lucide-react'
-import { useState, useRef, useEffect } from 'react'
-import { useForm, usePage } from '@inertiajs/react'
+import { useRef, useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
 import { NoteStatus } from "../../../app/enums/NoteStatus.js"
-import axios from 'axios'
 import GiphyPicker from '../../components/GiphyPicker'
+import { useNotesStore } from '../../stores/useNotesStore'
 
 import { Button } from "../../../inertia/components/ui.js/button"
 import { Input } from "../../../inertia/components/ui.js/input"
 import { Card } from "../../../inertia/components/ui.js/card"
-
-interface GiphyGif {
-  id: string
-  title: string
-  url: string
-  images: {
-    original: {
-      url: string
-      width: string
-      height: string
-    }
-    fixed_height: {
-      url: string
-      width: string
-      height: string
-    }
-    fixed_width: {
-      url: string
-      width: string
-      height: string
-    }
-    preview_gif: {
-      url: string
-      width: string
-      height: string
-    }
-  }
-}
 
 interface NoteFormProps {
   isEditing?: boolean
@@ -69,109 +40,42 @@ export default function NoteForm({
   onCancel,
   onSuccess
 }: NoteFormProps) {
-  const [showPreview, setShowPreview] = useState(false)
-  const [shareableLink, setShareableLink] = useState<string | null>(null)
-  const [showGiphyPicker, setShowGiphyPicker] = useState(false)
-  const [giphySearchQuery, setGiphySearchQuery] = useState('')
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const {
+    showPreview,
+    shareableLink,
+    showGiphyPicker,
+    giphySearchQuery,
+    formData,
+    processing,
+    errors,
+    setShowPreview,
+    setFormData,
+    resetFormData,
+    handleShare,
+    handleSubmit,
+    handleContentChange,
+    handleGifSelect
+  } = useNotesStore()
 
-  const { data, setData, post, put, processing, reset, errors } = useForm({
-    title: editingNote?.title || '',
-    content: editingNote?.content || '',
-    status: editingNote?.status || NoteStatus.PENDING,
-    pinned: editingNote?.pinned || false,
-    labels: editingNote?.labels || []
-  })
-
-  const handleShare = async () => {
-    if (!editingNote) return;
-    try {
-      const response = await axios.post(`/notes/${editingNote.id}/share`);
-      setShareableLink(response.data.shareableLink);
-    } catch (error) {
-      console.error("Failed to share note:", error);
-    }
-  }
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-
-    if (isEditing && editingNote) {
-      put(`/notes/${editingNote.id}`, {
-        onSuccess: () => {
-          onSuccess?.()
-          reset()
-        }
+  useEffect(() => {
+    if (editingNote) {
+      setFormData({
+        title: editingNote.title,
+        content: editingNote.content,
+        status: editingNote.status,
+        pinned: editingNote.pinned,
+        labels: editingNote.labels
       })
     } else {
-      post('/notes', {
-        onSuccess: () => {
-          onSuccess?.()
-          reset()
-        }
-      })
+      resetFormData()
     }
-  }
+  }, [editingNote, setFormData, resetFormData])
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
-      handleSubmit(e)
+      handleSubmit(e, editingNote, onSuccess)
     }
-  }
-
-  // giphy search handling
-  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const newContent = e.target.value
-    setData("content", newContent)
-
-    // Check for slash commands
-    const lines = newContent.split('\n')
-    const currentLineIndex = e.target.selectionStart ?
-      newContent.substring(0, e.target.selectionStart).split('\n').length - 1 :
-      lines.length - 1
-    const currentLine = lines[currentLineIndex] || ''
-
-    // Detect /giphy command
-    const giphyMatch = currentLine.match(/\/giphy\s+(.+)$/)
-    if (giphyMatch) {
-      const searchQuery = giphyMatch[1].trim()
-      if (searchQuery) {
-        setGiphySearchQuery(searchQuery)
-        setShowGiphyPicker(true)
-      }
-    }
-  }
-
-  const handleGifSelect = (gif: GiphyGif) => {
-    if (!textareaRef.current) return
-
-    const textarea = textareaRef.current
-    const cursorPosition = textarea.selectionStart
-    const content = data.content
-    const lines = content.split('\n')
-
-    // Find the line with /giphy command
-    const lineStartPosition = content.lastIndexOf('\n', cursorPosition - 1) + 1
-    const lineEndPosition = content.indexOf('\n', cursorPosition)
-    const currentLine = content.substring(
-      lineStartPosition,
-      lineEndPosition === -1 ? content.length : lineEndPosition
-    )
-
-    // Replace /giphy command with GIF markdown
-    const giphyMatch = currentLine.match(/\/giphy\s+(.+)$/)
-    if (giphyMatch) {
-      const gifMarkdown = `![${gif.title}](${gif.images.original.url})`
-      const newContent =
-        content.substring(0, lineStartPosition) +
-        currentLine.replace(/\/giphy\s+(.+)$/, gifMarkdown) +
-        content.substring(lineEndPosition === -1 ? content.length : lineEndPosition)
-
-      setData("content", newContent)
-    }
-
-    setShowGiphyPicker(false)
-    setGiphySearchQuery('')
   }
 
 
@@ -185,8 +89,8 @@ export default function NoteForm({
         <GiphyPicker
           isOpen={showGiphyPicker}
           searchQuery={giphySearchQuery}
-          onGifSelect={handleGifSelect}
-          onClose={() => setShowGiphyPicker(false)}
+          onGifSelect={(gif) => handleGifSelect(gif, textareaRef)}
+          onClose={() => useNotesStore.getState().setShowGiphyPicker(false)}
         />
       )}
 
@@ -209,7 +113,7 @@ export default function NoteForm({
           {isEditing && (
             <Button
               type="button"
-              onClick={handleShare}
+              onClick={() => handleShare(editingNote)}
               className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors text-[#98989D] hover:bg-[#4A4A4C]"
             >
               <Share2Icon size={14} />
@@ -229,14 +133,14 @@ export default function NoteForm({
           />
         </div>
       )}
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={(e) => handleSubmit(e, editingNote, onSuccess)}>
         <div className="mb-4">
           <Input
             whileFocus={{ scale: 1.01 }}
             transition={{ duration: 0.2 }}
             type="text"
-            value={data.title}
-            onChange={(e) => setData("title", e.target.value)}
+            value={formData.title}
+            onChange={(e) => setFormData({ title: e.target.value })}
             placeholder="Note title"
             className="text-white"
             required
@@ -283,7 +187,7 @@ export default function NoteForm({
                   ),
                 }}
               >
-                {data.content || '*No content to preview*'}
+                {formData.content || '*No content to preview*'}
               </ReactMarkdown>
             </div>
           ) : (
@@ -291,7 +195,7 @@ export default function NoteForm({
               ref={textareaRef}
               whileFocus={{ scale: 1.01 }}
               transition={{ duration: 0.2 }}
-              value={data.content}
+              value={formData.content}
               onChange={handleContentChange}
               onKeyDown={handleKeyDown}
               placeholder="Write your note... (Markdown supported)
@@ -322,8 +226,8 @@ Slash Commands:
           <motion.select
             whileFocus={{ scale: 1.01 }}
             transition={{ duration: 0.2 }}
-            value={data.status}
-            onChange={(e) => setData('status', e.target.value)}
+            value={formData.status}
+            onChange={(e) => setFormData({ status: e.target.value })}
             className="w-full px-4 py-3 bg-[#3A3A3C] text-white placeholder-[#98989D] rounded-lg border-none focus:ring-2 focus:ring-[#0A84FF] focus:outline-none transition-all duration-200"
             disabled={processing}
           >
@@ -345,15 +249,15 @@ Slash Commands:
                 whileTap={{ scale: 0.95 }}
                 type="button"
                 onClick={() => {
-                  const currentLabels = new Set(data.labels)
+                  const currentLabels = new Set(formData.labels)
                   if (currentLabels.has(label)) {
                     currentLabels.delete(label)
                   } else {
                     currentLabels.add(label)
                   }
-                  setData('labels', Array.from(currentLabels))
+                  setFormData({ labels: Array.from(currentLabels) })
                 }}
-                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${data.labels.includes(label)
+                className={`px-3 py-1 rounded-full text-sm font-medium transition-colors ${formData.labels.includes(label)
                   ? 'bg-[#0A84FF] text-white'
                   : 'bg-[#3A3A3C] text-[#98989D] hover:bg-[#4A4A4C]'}`}
               >
