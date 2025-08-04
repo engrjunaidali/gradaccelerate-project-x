@@ -11,6 +11,7 @@ const NotesController = () => import('#controllers/notes_controller')
 const TodosController = () => import('#controllers/todos_controller')
 import router from '@adonisjs/core/services/router'
 
+
 router.get('/', ({ inertia }) => inertia.render('home'))
 // router.get('/todos', ({ inertia }) => inertia.render('todos/empty'))
 
@@ -27,8 +28,10 @@ router.group(() => {
 // image upload route
 
 router.group(() => {
-  router.get('/', [NotesController, 'index'])        // GET /notes
-  router.post('/', [NotesController, 'store'])       // POST /notes
-  router.put('/:id', [NotesController, 'update'])    // PUT /notes/:id
-  router.delete('/:id', [NotesController, 'destroy']) // DELETE /notes/:id
+  router.get('/', [NotesController, 'index'])
+    router.get('/:id', [NotesController, 'show'])
+    router.post('', [NotesController, 'store'])
+    router.put('/:id', [NotesController, 'update'])
+    router.patch('/:id/toggle-pin', [NotesController, 'togglePin'])
+    router.delete('/:id', [NotesController, 'destroy'])
 }).prefix('/notes')
