@@ -11,6 +11,8 @@ const NotesController = () => import('#controllers/notes_controller')
 const TodosController = () => import('#controllers/todos_controller')
 const AuthController = () => import('#controllers/auth_controller')
 const GoogleAuthController = () => import('#controllers/google_auth_controller')
+const WeatherController = () => import('#controllers/weather_controller')
+const GiphyController = () => import('#controllers/giphy_controller')
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
 
@@ -76,3 +78,19 @@ router.get('/auth/google/notes', [GoogleAuthController, 'redirectForNotes'])
 router.get('/auth/google/todos', [GoogleAuthController, 'redirectForTodos'])
 router.get('/auth/google/callback', [GoogleAuthController, 'callback'])
 router.get('/auth/google/token', [GoogleAuthController, 'handleToken'])
+
+router.group(() => {
+  router.get('/', [WeatherController, 'index'])        // GET /weather - Dashboard
+  router.post('/coordinates', [WeatherController, 'getWeatherByCoordinates'])  // POST /weather/coordinates
+  router.post('/city', [WeatherController, 'getWeatherByCity'])                // POST /weather/city
+  router.get('/location', [WeatherController, 'getLocationByIP'])              // GET /weather/location
+})
+  .prefix('/weather')
+
+// ---------------- Giphy API routes
+
+router.group(() => {
+  router.get('/search', [GiphyController, 'search'])        // GET /api/giphy/search?query=...
+})
+  .prefix('/api/giphy')
+  .middleware([middleware.auth()])
