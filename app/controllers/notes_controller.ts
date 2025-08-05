@@ -14,6 +14,7 @@ export default class NotesController {
     const perPage = 6
     const sortField = request.input('sort', 'created_at')
     const sortDirection = request.input('direction', 'desc')
+    const searchQuery = request.input('search', '')
 
     // Validate sort field
     const allowedSortFields = ['created_at', 'updated_at', 'title']
@@ -26,6 +27,14 @@ export default class NotesController {
       .where('user_id', user.id)
       .orderBy('pinned', 'desc')
       .orderBy(validSortField, validSortDirection)
+
+    if (searchQuery) {
+      query = query.where((builder) => {
+        builder
+          .whereILike('title', `%${searchQuery}%`)
+          .orWhereILike('content', `%${searchQuery}%`)
+      })
+    }
 
     if (validSortField !== 'created_at') {
       query = query.orderBy('created_at', 'desc')
@@ -103,12 +112,14 @@ export default class NotesController {
    * Store a new note
    */
   store = asyncHandler(async ({ request, response, auth }: HttpContext) => {
-    const data = request.only(['title', 'content', 'status'])
+    const data = request.only(['title', 'content', 'status', 'labels'])
     const user = auth.user!
 
     await Note.create({
-      ...data,
+      title: data.title,
+      content: data.content,
       status: data.status ?? NoteStatus.PENDING,
+      labels: data.labels ?? [],
       userId: user.id,
     })
 
@@ -126,8 +137,13 @@ export default class NotesController {
       return response.notFound({ message: 'Note not found' })
     }
 
-    const data = request.only(['title', 'content', 'status'])
-    await note.merge(data).save()
+    const data = request.only(['title', 'content', 'status', 'labels'])
+    await note.merge({
+      title: data.title,
+      content: data.content,
+      status: data.status,
+      labels: data.labels ?? note.labels
+    }).save()
     return response.redirect().back()
   })
 

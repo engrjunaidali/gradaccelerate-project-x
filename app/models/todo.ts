@@ -2,7 +2,8 @@ import { DateTime } from 'luxon'
 import { BaseModel, column, belongsTo } from '@adonisjs/lucid/orm'
 import type { BelongsTo } from '@adonisjs/lucid/types/relations'
 import User from './user.js'
-
+import { TodoPriority } from '../enums/TodoPriority.js'
+import { TodoStatus } from '../enums/TodoStatus.js'
 export default class Todo extends BaseModel {
   @column({ isPrimary: true })
   declare id: number
@@ -12,6 +13,12 @@ export default class Todo extends BaseModel {
 
   @column()
   declare content: string
+
+  @column()
+  declare status: typeof TodoStatus
+
+  @column()
+  declare priority: typeof TodoPriority
 
   @column({
     serialize: (value: string | null) => {

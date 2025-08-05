@@ -1,6 +1,8 @@
 import React, { useState } from 'react'
 import { Head, useForm } from '@inertiajs/react'
-
+import { Button } from "../../../inertia/components/ui.js/button"
+import { Input } from "../../../inertia/components/ui.js/input"
+import { Card } from "../../../inertia/components/ui.js/card"
 interface SignupFormData {
   fullName: string
   email: string
@@ -75,14 +77,14 @@ export default function Signup() {
         </div>
 
         <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          <Card className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
             <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
                   Full Name
                 </label>
                 <div className="mt-1">
-                  <input
+                  <Input
                     id="fullName"
                     name="fullName"
                     type="text"
@@ -90,7 +92,6 @@ export default function Signup() {
                     required
                     value={data.fullName}
                     onChange={(e) => setData('fullName', e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     placeholder="Enter your full name"
                   />
                   {(localErrors.fullName || errors.fullName) && (
@@ -106,7 +107,7 @@ export default function Signup() {
                   Email address
                 </label>
                 <div className="mt-1">
-                  <input
+                  <Input
                     id="email"
                     name="email"
                     type="email"
@@ -114,7 +115,6 @@ export default function Signup() {
                     required
                     value={data.email}
                     onChange={(e) => setData('email', e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     placeholder="Enter your email"
                   />
                   {(localErrors.email || errors.email) && (
@@ -130,7 +130,7 @@ export default function Signup() {
                   Password
                 </label>
                 <div className="mt-1">
-                  <input
+                  <Input
                     id="password"
                     name="password"
                     type="password"
@@ -138,7 +138,6 @@ export default function Signup() {
                     required
                     value={data.password}
                     onChange={(e) => setData('password', e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     placeholder="Create a password"
                   />
                   {(localErrors.password || errors.password) && (
@@ -154,7 +153,7 @@ export default function Signup() {
                   Confirm Password
                 </label>
                 <div className="mt-1">
-                  <input
+                  <Input
                     id="confirmPassword"
                     name="confirmPassword"
                     type="password"
@@ -162,7 +161,6 @@ export default function Signup() {
                     required
                     value={data.confirmPassword}
                     onChange={(e) => setData('confirmPassword', e.target.value)}
-                    className="appearance-none block w-full px-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     placeholder="Confirm your password"
                   />
                   {(localErrors.confirmPassword || errors.confirmPassword) && (
@@ -174,13 +172,13 @@ export default function Signup() {
               </div>
 
               <div>
-                <button
+                <Button
                   type="submit"
                   disabled={processing}
-                  className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full flex justify-center py-2 px-4 border"
                 >
                   {processing ? 'Creating account...' : 'Create account'}
-                </button>
+                </Button>
               </div>
 
               <div className="relative">
@@ -216,7 +214,7 @@ export default function Signup() {
                 </a>
               </div>
             </form>
-          </div>
+          </Card>
         </div>
       </div>
     </>

@@ -4,6 +4,9 @@ import { fileURLToPath } from 'url';
 import path from 'path'
 import { ImageValidator, TodoIdValidator, CreateTodoValidator, UpdateTodoValidator } from '../validators/todo.js'
 
+import { TodoPriority } from '../enums/TodoPriority.js'
+import { TodoStatus } from '../enums/TodoStatus.js'
+
 import CloudinaryService from '#services/cloudinary_service'
 
 const __filename = fileURLToPath(import.meta.url);
@@ -51,8 +54,10 @@ export default class TodosController {
       const todo = await Todo.create({
         title: data.title,
         content: data.content,
+        status: data?.status.toLowerCase() || TodoStatus.PENDING.toLowerCase(),
         labels: parsedLabels,
         imageUrl: data.imageUrl || '',
+        priority: data.priority.toLowerCase() || TodoPriority.MEDIUM.toLowerCase(),
         userId: user.id
       })
 
@@ -96,8 +101,10 @@ export default class TodosController {
       const updateData: any = {}
       if (validatedData.title !== undefined) updateData.title = validatedData.title
       if (validatedData.content !== undefined) updateData.content = validatedData.content
+      if (validatedData.status !== undefined) updateData.status = validatedData.status
       if (validatedData.labels !== undefined) updateData.labels = this.parseLabels(validatedData.labels)
       if (validatedData.imageUrl !== undefined) updateData.imageUrl = validatedData.imageUrl
+      if (validatedData.priority !== undefined) updateData.priority = validatedData.priority
 
       updateData.userId = user.id
 

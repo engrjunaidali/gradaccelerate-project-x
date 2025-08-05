@@ -3,15 +3,34 @@ import { Save, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import axios from 'axios';
 
+import { Button } from "../../../inertia/components/ui.js/button"
+import { Input } from "../../../inertia/components/ui.js/input"
+import { Textarea } from "../../../inertia/components/ui.js/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../../inertia/components/ui.js/select"
+
+import { TodoPriority } from '../../../app/enums/TodoPriority'
+import { TodoStatus } from '../../../app/enums/TodoStatus'
+
+import { priorityColors } from "../../constants/priorityColors"
+import { TodoStatusColors } from "../../constants/TodoStatusColors"
+
+
 interface TodoFormProps {
-  data: { title: string; content: string; labels: string[]; imageUrl?: string | null }
+  data: {
+    title: string
+    content: string
+    status: typeof TodoStatus
+    labels: string[]
+    imageUrl: string
+    priority: typeof TodoPriority
+  }
   setData: (field: string, value: any) => void
   submit: (e: React.FormEvent) => void
   processing: boolean
   handleKeyDown: (e: React.KeyboardEvent) => void
   isEditing?: boolean
   onCancel: () => void
-  errors?: { [key: string]: string }
+  errors: Record<string, string>
 }
 
 export default function TodoForm({
@@ -95,34 +114,67 @@ export default function TodoForm({
       <form onSubmit={submit} className="space-y-4">
         {errors?.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
         <div>
-          <input
+          <Input
             type="text"
             placeholder="Todo title..."
             value={data.title}
             onChange={(e) => setData('title', e.target.value)}
             onKeyDown={handleKeyDown}
-            className="w-full bg-[#3A3A3C] text-white placeholder-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#0A84FF] transition-all duration-200"
+            className="w-full"
             autoFocus
           />
         </div>
 
         <div>
-          <textarea
+          <Textarea
             placeholder="Todo content..."
             value={data.content}
             onChange={(e) => setData('content', e.target.value)}
             onKeyDown={handleKeyDown}
             rows={4}
-            className="w-full bg-[#3A3A3C] text-white placeholder-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#0A84FF] transition-all duration-200 resize-none"
+            className="w-full mb-3"
           />
+
+          <div className="mb-4">
+            <Select
+              value={data.status}
+              onValueChange={(value) => setData('status', value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={TodoStatus.PENDING} className={TodoStatusColors[TodoStatus.PENDING]}>Pending</SelectItem>
+                <SelectItem value={TodoStatus.IN_PROGRESS} className={TodoStatusColors[TodoStatus.IN_PROGRESS]}>In Progress</SelectItem>
+                <SelectItem value={TodoStatus.COMPLETED} className={TodoStatusColors[TodoStatus.COMPLETED]}>Completed</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+
+          <div className="mb-4">
+            <Select
+              value={data.priority}
+              onValueChange={(value) => setData('priority', value)}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Select priority" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={TodoPriority.HIGH} className={priorityColors['high']}>High Priority</SelectItem>
+                <SelectItem value={TodoPriority.MEDIUM} className={priorityColors['medium']}>Medium Priority</SelectItem>
+                <SelectItem value={TodoPriority.LOW} className={priorityColors['low']}>Low Priority</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="mb-3">
             <label className="block text-sm text-gray-200 mb-1">Attach Image (optional)</label>
-            <input
+            <Input
               type="file"
               accept="image/*"
               onChange={handleImageChange}
-              className="block text-sm text-gray-100"
+              className="block text-sm text-white"
               disabled={processing}
             />
             {imagePreview && (
@@ -130,7 +182,7 @@ export default function TodoForm({
                 <img
                   src={imagePreview}
                   alt="Preview"
-                  className="rounded-lg w-32 h-32 object-cover border border-gray-700"
+                  className="rounded-lg w-32 h-32 object-cover border border-white-700"
                   style={{ maxWidth: 128, maxHeight: 128 }}
                 />
                 <button
@@ -144,7 +196,7 @@ export default function TodoForm({
             )}
           </div>
 
-          <input
+          <Input
             type="text"
             placeholder="Comma separated labels (e.g. work, personal), no space allowed"
             value={labelsInput}
@@ -161,7 +213,7 @@ export default function TodoForm({
         </div>
 
         <div className="flex justify-end gap-3">
-          <motion.button
+          <Button
             type="button"
             onClick={onCancel}
             whileTap={{ scale: 0.95 }}
@@ -169,17 +221,17 @@ export default function TodoForm({
           >
             <X size={16} />
             Cancel
-          </motion.button>
+          </Button>
 
-          <motion.button
+          <Button
             type="submit"
             disabled={processing || isUploading || !data.title.trim()}
             whileTap={{ scale: 0.95 }}
-            className="px-4 py-2 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A74FF] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center gap-2"
+            className="px-4 py-2 text-white rounded-lg hover:bg-[#0A74FF] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center gap-2"
           >
             <Save size={16} />
             {processing ? 'Saving...' : isEditing ? 'Update' : 'Save'}
-          </motion.button>
+          </Button>
         </div>
 
       </form>

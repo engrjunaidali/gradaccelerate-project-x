@@ -3,13 +3,20 @@ import { Edit, Trash2, Calendar, Eye } from 'lucide-react'
 import { DateTime } from 'luxon'
 import { router } from '@inertiajs/react'
 import { formatDate } from '../../../utils/date-utils'
-
+import { Button } from "../../../inertia/components/ui.js/button"
+import { Badge } from "../../../inertia/components/ui.js/badge"
+import { priorityColors } from "../../constants/priorityColors"
+import { TodoPriority } from "../../../app/enums/TodoPriority"
+import { TodoStatus } from "../../../app/enums/TodoStatus"
+import { TodoStatusColors } from "../../constants/TodoStatusColors"
 interface Todo {
   id: number
   title: string
   content: string
+  status: typeof TodoStatus
   labels: string[] | null
   imageUrl: string | null
+  priority: typeof TodoPriority
   createdAt: string
   updatedAt: string | null
 }
@@ -31,19 +38,25 @@ export default function TodoCard({ todo, viewType, onEdit, onDelete }: TodoCardP
     <motion.div
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className={`bg-[#2C2C2E] rounded-lg p-4 shadow-lg border border-[#3A3A3C] hover:border-[#0A84FF] transition-all duration-200 ${viewType === 'list' ? 'flex items-center justify-between' : ''
+      className={`bg-[#2C2C2E] rounded-lg p-4 shadow-lg border border-[#3A3A3C] hover:border-white transition-all duration-200 ${viewType === 'list' ? 'flex items-center justify-between' : ''
         }`}
     >
       <div className={viewType === 'list' ? 'flex-1' : ''}>
-        <h3 className="text-lg font-semibold text-white mb-2 line-clamp-1">
+        <Badge variant="outline" className={priorityColors[todo.priority.toLowerCase()]} >
+          {todo.priority}
+        </Badge>
+        <h3 className="text-lg font-semibold text-white mb-2 mt-3 line-clamp-1">
           {todo.title}
         </h3>
 
-
-
-        <p className={`text-gray-300 mb-3 ${viewType === 'list' ? 'line-clamp-1' : 'line-clamp-3'}`}>
+        <p className={`text-gray-300 mb-2 ${viewType === 'list' ? 'line-clamp-1' : 'line-clamp-3'}`}>
           {todo.content}
         </p>
+
+        <div className={`inline-block px-2 py-1 mb-2  rounded-full text-xs ${TodoStatusColors[todo.status]}`}>
+          {todo.status}
+        </div>
+
         <div className="flex items-center gap-2 text-xs text-gray-500">
           <Calendar size={12} />
           <span>
@@ -80,32 +93,32 @@ export default function TodoCard({ todo, viewType, onEdit, onDelete }: TodoCardP
 
       <div className={`flex gap-2 ${viewType === 'list' ? 'ml-4' : 'mt-4'}`}>
 
-        <motion.button
+        <Button
           whileTap={{ scale: 0.9 }}
           onClick={handleView}
-          className="p-2 bg-[#34C759] text-white rounded-lg hover:bg-[#30B855] transition-colors duration-200"
+          className="p-2 bg-[#34C759] text-white hover:bg-[#30B855] transition-colors duration-200 rounded-full"
           title="View todo"
         >
           <Eye size={16} />
-        </motion.button>
+        </Button>
 
-        <motion.button
+        <Button
           whileTap={{ scale: 0.9 }}
           onClick={() => onEdit(todo)}
-          className="p-2 bg-[#0A84FF] text-white rounded-lg hover:bg-[#0A74FF] transition-colors duration-200"
+          className="p-2 bg-[#0A84FF] text-white hover:bg-[#0A74FF] transition-colors duration-200 rounded-full"
           title="Edit todo"
         >
           <Edit size={16} />
-        </motion.button>
+        </Button>
 
-        <motion.button
+        <Button
           whileTap={{ scale: 0.9 }}
           onClick={() => onDelete(todo.id)}
-          className="p-2 bg-[#FF3B30] text-white rounded-lg hover:bg-[#FF2D20] transition-colors duration-200"
+          className="p-2 bg-[#FF3B30] text-white hover:bg-[#FF2D20] transition-colors duration-200  rounded-full"
           title="Delete todo"
         >
           <Trash2 size={16} />
-        </motion.button>
+        </Button>
       </div>
     </motion.div>
   )
