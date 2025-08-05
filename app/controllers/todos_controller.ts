@@ -1,10 +1,13 @@
 import { HttpContext } from '@adonisjs/core/http'
 import Todo from '#models/todo'
-
+import { fileURLToPath } from 'url';
+import path from 'path'
 import { ImageValidator, TodoIdValidator, CreateTodoValidator, UpdateTodoValidator } from '../validators/todo.js'
 
-
 import CloudinaryService from '#services/cloudinary_service'
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export default class TodosController {
   async index({ response, auth }: HttpContext) {
@@ -27,7 +30,6 @@ export default class TodosController {
         .firstOrFail()
       return inertia.render('todos/show', { todo })
     } catch (error) {
-      // Handle validation errors or record not found
       return response.redirect('/todos')
     }
   }
@@ -131,7 +133,6 @@ export default class TodosController {
     try {
       const imageFile = request.file('image')
 
-
       if (!imageFile) {
         return response.badRequest({ error: 'No image file provided' })
       }
@@ -152,7 +153,7 @@ export default class TodosController {
       return response.ok({
         message: 'Image uploaded successfully',
         url: result.url,
-        publicId: result.publicId
+        publicId: result.publicId,
       })
     } catch (error) {
       console.error('Image Upload Error:', error)
