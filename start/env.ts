@@ -24,4 +24,28 @@ export default await Env.create(new URL('../', import.meta.url), {
   |----------------------------------------------------------
   */
   SESSION_DRIVER: Env.schema.enum(['cookie', 'memory'] as const),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring ally package
+  |----------------------------------------------------------
+  */
+  GOOGLE_CLIENT_ID: Env.schema.string(),
+  GOOGLE_CLIENT_SECRET: Env.schema.string(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring weather API
+  |----------------------------------------------------------
+  */
+  WEATHER_API_KEY: Env.schema.string.optional(),
+  OPENWEATHER_API_KEY: Env.schema.string.optional(),
+  IPAPI_KEY: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring Giphy API
+  |----------------------------------------------------------
+  */
+  GIPHY_API_KEY: Env.schema.string.optional()
 })
