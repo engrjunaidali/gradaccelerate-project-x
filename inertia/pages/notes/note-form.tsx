@@ -1,12 +1,13 @@
 import type React from "react"
 import { motion } from "framer-motion"
-import { SaveIcon, PinIcon, EyeIcon, EditIcon } from 'lucide-react'
+import { SaveIcon, PinIcon, EyeIcon, EditIcon, Share2Icon } from 'lucide-react'
 import { useState } from 'react'
 import { useForm, usePage } from '@inertiajs/react'
 import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
 import { NoteStatus } from "../../../app/enums/NoteStatus.js"
+import axios from 'axios'
 
 interface NoteFormProps {
   isEditing?: boolean
@@ -37,6 +38,7 @@ export default function NoteForm({
   const { flash } = usePage<PageProps>().props
 
   const [showPreview, setShowPreview] = useState(false)
+  const [shareableLink, setShareableLink] = useState<string | null>(null)
 
   const { data, setData, post, put, processing, reset, errors } = useForm({
     title: editingNote?.title || '',
@@ -44,6 +46,16 @@ export default function NoteForm({
     status: editingNote?.status || NoteStatus.PENDING,
     pinned: editingNote?.pinned || false
   })
+
+  const handleShare = async () => {
+    if (!editingNote) return;
+    try {
+      const response = await axios.post(`/notes/${editingNote.id}/share`);
+      setShareableLink(response.data.shareableLink);
+    } catch (error) {
+      console.error("Failed to share note:", error);
+    }
+  }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -79,18 +91,41 @@ export default function NoteForm({
         <h2 className="text-xl font-semibold text-white">
           {isEditing ? 'Edit Note' : 'New Note'}
         </h2>
-        <button
-          type="button"
-          onClick={() => setShowPreview(!showPreview)}
-          className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors ${showPreview
-            ? 'bg-[#0A84FF] text-white'
-            : 'bg-[#3A3A3C] text-[#98989D] hover:bg-[#4A4A4C]'
-            }`}
-        >
-          {showPreview ? <EditIcon size={14} /> : <EyeIcon size={14} />}
-          {showPreview ? 'Edit' : 'Preview'}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowPreview(!showPreview)}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors ${showPreview
+                ? 'bg-[#0A84FF] text-white'
+                : 'bg-[#3A3A3C] text-[#98989D] hover:bg-[#4A4A4C]'
+              }`}
+          >
+            {showPreview ? <EditIcon size={14} /> : <EyeIcon size={14} />}
+            {showPreview ? 'Edit' : 'Preview'}
+          </button>
+          {isEditing && (
+            <button
+              type="button"
+              onClick={handleShare}
+              className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-colors bg-[#3A3A3C] text-[#98989D] hover:bg-[#4A4A4C]"
+            >
+              <Share2Icon size={14} />
+              Share
+            </button>
+          )}
+        </div>
       </div>
+      {shareableLink && (
+        <div className="mb-4 p-3 bg-[#3A3A3C] rounded-lg">
+          <p className="text-white">Shareable Link:</p>
+          <input
+            type="text"
+            readOnly
+            value={shareableLink}
+            className="w-full bg-[#1C1C1E] text-white p-2 rounded mt-1"
+          />
+        </div>
+      )}
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
           <motion.input

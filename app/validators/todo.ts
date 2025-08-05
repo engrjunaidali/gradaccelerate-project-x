@@ -7,14 +7,14 @@ export const TodoIdValidator = z.object({
 export const CreateTodoValidator = z.object({
   title: z.string().trim().min(1),
   content: z.string().trim(),
-  labels: z.string().optional(),
-  imageUrl: z.string().url().optional()
+  labels: z.array(z.string()).optional(),
+  imageUrl: z.string().url().optional().nullable()
 })
 
 export const UpdateTodoValidator = z.object({
   title: z.string().trim().min(1).max(255).optional(),
   content: z.string().trim().min(1).optional(),
-  labels: z.string().optional(),
+  labels: z.array(z.string()).optional(),
   imageUrl: z.string().url().optional().nullable()
 })
 

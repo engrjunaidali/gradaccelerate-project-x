@@ -2,12 +2,14 @@ import { HttpContext } from '@adonisjs/core/http'
 import Note from '#models/note'
 import { NoteStatus } from '../enums/NoteStatus.js'
 import { asyncHandler } from '../utils/asyncHandler.js'
+import { cuid } from '@adonisjs/core/helpers'
+import { DateTime } from 'luxon'
 
 export default class NotesController {
   /**
    * Display a list of notes
    */
-  index = asyncHandler(async ({ inertia, request }: HttpContext) => {
+  index = asyncHandler(async ({ inertia, request, auth }: HttpContext) => {
     const page = request.input('page', 1)
     const perPage = 6
     const sortField = request.input('sort', 'created_at')
@@ -18,7 +20,10 @@ export default class NotesController {
     const validSortField = allowedSortFields.includes(sortField) ? sortField : 'created_at'
     const validSortDirection = ['asc', 'desc'].includes(sortDirection) ? sortDirection : 'desc'
 
+    const user = auth.user!
+
     let query = Note.query()
+      .where('user_id', user.id)
       .orderBy('pinned', 'desc')
       .orderBy(validSortField, validSortDirection)
 
@@ -49,22 +54,62 @@ export default class NotesController {
   /**
    * Get a specific note
    */
-  show = asyncHandler(async ({ params, response }: HttpContext) => {
-    const note = await Note.find(params.id)
+  show = asyncHandler(async ({ params, response, auth }: HttpContext) => {
+    const user = auth.user!
+    const note = await Note.query().where('id', params.id).where('user_id', user.id).first()
+
     if (!note) {
       return response.notFound({ message: 'Note not found' })
     }
     return response.json(note)
   })
 
+  async share({ params, response, auth }: HttpContext) {
+    const user = auth.user!
+    const note = await Note.query().where('id', params.id).where('user_id', user.id).first()
+
+    if (!note) {
+      return response.notFound({ message: 'Note not found' })
+    }
+
+    note.shared_token = cuid()
+    note.shared_token_expires_at = DateTime.now().plus({ hours: 24 })
+    await note.save()
+
+    const shareableLink = `${process.env.APP_URL}/notes/shared/${note.shared_token}`
+
+    return response.json({
+      message: 'Note shared successfully',
+      shareableLink,
+    })
+  }
+
+  async showShared({ params, inertia, response }: HttpContext) {
+    const token = params.token
+    const note = await Note.query().where('shared_token', token).first()
+
+    if (!note) {
+      return response.notFound('Note not found or invalid share link.')
+    }
+
+    if (note.shared_token_expires_at && note.shared_token_expires_at < DateTime.now()) {
+      return response.badRequest('Share link has expired.')
+    }
+
+    return inertia.render('notes/shared', { note })
+  }
+
   /**
    * Store a new note
    */
-  store = asyncHandler(async ({ request, response }: HttpContext) => {
+  store = asyncHandler(async ({ request, response, auth }: HttpContext) => {
     const data = request.only(['title', 'content', 'status'])
-    const note = await Note.create({
+    const user = auth.user!
+
+    await Note.create({
       ...data,
       status: data.status ?? NoteStatus.PENDING,
+      userId: user.id,
     })
 
     return response.redirect().back()
@@ -73,8 +118,10 @@ export default class NotesController {
   /**
    * Update a note
    */
-  update = asyncHandler(async ({ params, request, response }: HttpContext) => {
-    const note = await Note.find(params.id)
+  update = asyncHandler(async ({ params, request, response, auth }: HttpContext) => {
+    const user = auth.user!
+    const note = await Note.query().where('id', params.id).where('user_id', user.id).first()
+
     if (!note) {
       return response.notFound({ message: 'Note not found' })
     }
@@ -84,8 +131,10 @@ export default class NotesController {
     return response.redirect().back()
   })
 
-  togglePin = asyncHandler(async ({ params, response, session }: HttpContext) => {
-    const note = await Note.find(params.id)
+  togglePin = asyncHandler(async ({ params, response, session, auth }: HttpContext) => {
+    const user = auth.user!
+    const note = await Note.query().where('id', params.id).where('user_id', user.id).first()
+
     if (!note) {
       session.flash('error', 'Note not found')
       return response.redirect().back()
@@ -104,8 +153,10 @@ export default class NotesController {
   /**
    * Delete a note
    */
-  destroy = asyncHandler(async ({ params, response }: HttpContext) => {
-    const note = await Note.find(params.id)
+  destroy = asyncHandler(async ({ params, response, auth }: HttpContext) => {
+    const user = auth.user!
+    const note = await Note.query().where('id', params.id).where('user_id', user.id).first()
+
     if (!note) {
       return response.notFound({ message: 'Note not found' })
     }

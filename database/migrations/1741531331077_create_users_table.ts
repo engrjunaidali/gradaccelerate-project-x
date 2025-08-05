@@ -10,6 +10,10 @@ export default class extends BaseSchema {
       table.string('email', 254).notNullable().unique()
       table.string('password').notNullable()
 
+      table.string('avatar_url');
+      table.string('provider');
+      table.string('provider_id');
+
       table.timestamp('created_at').notNullable()
       table.timestamp('updated_at').nullable()
     })

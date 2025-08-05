@@ -9,7 +9,7 @@ interface Todo {
   title: string
   content: string
   labels: string[] | null
-  imageUrl: string
+  imageUrl: string | null
   createdAt: string
   updatedAt: string | null
 }
@@ -22,7 +22,7 @@ interface TodoCardProps {
 }
 
 export default function TodoCard({ todo, viewType, onEdit, onDelete }: TodoCardProps) {
-  
+
   const handleView = () => {
     router.visit(`/todos/${todo.id}`)
   }
@@ -52,7 +52,7 @@ export default function TodoCard({ todo, viewType, onEdit, onDelete }: TodoCardP
           </span>
         </div>
 
-        
+
         {todo.imageUrl && todo.imageUrl !== '' && (
           <img
             src={todo.imageUrl}

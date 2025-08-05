@@ -1,7 +1,7 @@
 import { Head, useForm, Link, router, usePage } from '@inertiajs/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState } from 'react'
-import { PlusIcon, XIcon, ArrowLeft, ChevronLeftIcon, ChevronRightIcon, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react'
+import { PlusIcon, XIcon, ArrowLeft, ChevronLeftIcon, ChevronRightIcon, ArrowUpDown, ArrowUp, ArrowDown, LogOut } from 'lucide-react'
 import 'highlight.js/styles/github-dark.css'
 import NoteCard from './note-card'
 import NoteForm from './note-form'
@@ -45,14 +45,15 @@ interface SortConfig {
 interface PageProps extends InertiaPageProps {
   notes: NotesData;
   currentSort: SortConfig;
-  flash?: {
-    success?: string;
-    error?: string;
+  user?: {
+    id: number;
+    fullName: string | null;
+    email: string;
   };
 }
 
 export default function Index() {
-  const { notes: notesData, currentSort, flash } = usePage<PageProps>().props
+  const { notes: notesData, currentSort, user } = usePage<PageProps>().props
 
   const [isFormVisible, setIsFormVisible] = useState(false)
   const [viewType, setViewType] = useState<ViewType>('grid')
@@ -97,12 +98,20 @@ export default function Index() {
     router.patch(`/notes/${id}/toggle-pin`, {}, {
       preserveState: true,
       preserveScroll: true,
-      only: ['notes', 'flash']
+      only: ['notes']
+    })
+  }
+
+  const handleLogout = () => {
+    router.post('/auth/session/logout', {}, {
+      onSuccess: () => {
+        // Redirect will be handled by the controller
+      }
     })
   }
 
   const handleSort = (field: SortField) => {
-    const newDirection = sortConfig.field === field && sortConfig.direction === 'desc' ? 'asc' : 'desc'
+    const newDirection: SortDirection = sortConfig.field === field && sortConfig.direction === 'desc' ? 'asc' : 'desc'
     const newSortConfig = { field, direction: newDirection }
     setSortConfig(newSortConfig)
 
@@ -134,7 +143,6 @@ export default function Index() {
     }
   }
 
-
   return (
     <>
       <Head title="Notes" />
@@ -163,9 +171,22 @@ export default function Index() {
                 </defs>
               </svg>
               <h1 className="text-3xl font-bold">Notes</h1>
+              {user && (
+                <p className="text-gray-400 text-sm">
+                  Welcome back, {user.fullName || user.email}
+                </p>
+              )}
             </div>
             <div className="flex items-center gap-3">
               <ViewSwitcher currentView={viewType} onChange={setViewType} />
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={handleLogout}
+                className="bg-red-600 text-white p-3 rounded-full shadow-lg hover:bg-red-700 transition-colors duration-200"
+                title="Logout"
+              >
+                <LogOut size={20} />
+              </motion.button>
               <motion.button
                 whileTap={{ scale: 0.95 }}
                 onClick={() => setIsFormVisible(!isFormVisible)}
@@ -175,31 +196,6 @@ export default function Index() {
               </motion.button>
             </div>
           </motion.div>
-
-          {/* Flash Messages */}
-          <AnimatePresence>
-            {flash?.success && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mb-4 p-3 bg-green-500/20 border border-green-500/50 rounded-lg text-green-300"
-              >
-                {flash.success}
-              </motion.div>
-            )}
-
-            {flash?.error && (
-              <motion.div
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-red-300"
-              >
-                {flash.error}
-              </motion.div>
-            )}
-          </AnimatePresence>
 
           {/* Sorting Controls */}
           <motion.div
@@ -385,4 +381,4 @@ export default function Index() {
       )}
     </>
   )
-} 
+}
