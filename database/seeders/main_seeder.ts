@@ -8,6 +8,8 @@ export default class extends BaseSeeder {
 
   async run() {
     // Run seeders in order
+    await this.runSeeder('todo_seeder')
     await this.runSeeder('note_seeder')
+
   }
 }
