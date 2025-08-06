@@ -15,34 +15,20 @@ import { priorityColors } from "../../constants/priorityColors"
 import { TodoStatusColors } from "../../constants/TodoStatusColors"
 
 
-interface TodoFormProps {
-  data: {
-    title: string
-    content: string
-    status: typeof TodoStatus
-    labels: string[]
-    imageUrl: string
-    priority: typeof TodoPriority
-  }
-  setData: (field: string, value: any) => void
-  submit: (e: React.FormEvent) => void
-  processing: boolean
-  handleKeyDown: (e: React.KeyboardEvent) => void
-  isEditing?: boolean
-  onCancel: () => void
-  errors: Record<string, string>
-}
+import { useTodosStore } from '../../stores/useTodosStore';
 
-export default function TodoForm({
-  data,
-  setData,
-  submit,
-  processing,
-  handleKeyDown,
-  isEditing = false,
-  onCancel,
-  errors
-}: TodoFormProps) {
+export default function TodoForm() {
+  const {
+    data,
+    updateData,
+    submit,
+    processing,
+    errors,
+    editingTodo,
+    handleCancel
+  } = useTodosStore();
+
+  const isEditing = !!editingTodo;
 
   const [isUploading, setIsUploading] = useState(false);
 
@@ -63,8 +49,7 @@ export default function TodoForm({
   }, [data.imageUrl]);
 
   // When file input changes
-  const handleImageChange = async (e) => {
-
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setIsUploading(true);
     const file = e.target.files?.[0];
     if (!file) return;
@@ -82,25 +67,19 @@ export default function TodoForm({
         headers: {
           'X-CSRF-TOKEN': csrfToken || '',
           'Authorization': token ? `Bearer ${token}` : '',
-          // 'Content-Type': let axios/browser set this!
         },
-        withCredentials: true, // sends cookies
+        withCredentials: true,
       });
       if (res.data.url) {
-        setData('imageUrl', res.data.url);      // this line is correct
-        console.log('imageUrl', res.data.url);  // this is better than .imageUrl
+        updateData('imageUrl', res.data.url);
         setIsUploading(false);
-
       }
-
     } catch (err) {
       setImageFile(null);
       setIsUploading(false);
       alert('Image upload failed.');
       console.error('Image upload error:', err);
     }
-
-
   };
 
 
@@ -118,8 +97,14 @@ export default function TodoForm({
             type="text"
             placeholder="Todo title..."
             value={data.title}
-            onChange={(e) => setData('title', e.target.value)}
-            onKeyDown={handleKeyDown}
+            onChange={(e) => updateData('title', e.target.value)}
+            onKeyDown={(e) => {
+              if (e.ctrlKey && e.key === 'Enter') {
+                submit(e);
+              } else if (e.key === 'Escape') {
+                handleCancel();
+              }
+            }}
             className="w-full"
             autoFocus
           />
@@ -129,8 +114,14 @@ export default function TodoForm({
           <Textarea
             placeholder="Todo content..."
             value={data.content}
-            onChange={(e) => setData('content', e.target.value)}
-            onKeyDown={handleKeyDown}
+            onChange={(e) => updateData('content', e.target.value)}
+            onKeyDown={(e) => {
+              if (e.ctrlKey && e.key === 'Enter') {
+                submit(e);
+              } else if (e.key === 'Escape') {
+                handleCancel();
+              }
+            }}
             rows={4}
             className="w-full mb-3"
           />
@@ -138,7 +129,7 @@ export default function TodoForm({
           <div className="mb-4">
             <Select
               value={data.status}
-              onValueChange={(value) => setData('status', value)}
+              onValueChange={(value) => updateData('status', value)}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select Status" />
@@ -155,7 +146,7 @@ export default function TodoForm({
           <div className="mb-4">
             <Select
               value={data.priority}
-              onValueChange={(value) => setData('priority', value)}
+              onValueChange={(value) => updateData('priority', value)}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select priority" />
@@ -187,7 +178,7 @@ export default function TodoForm({
                 />
                 <button
                   type="button"
-                  onClick={() => { setImageFile(null); setImagePreview(null); setData('imageUrl', null); }}
+                  onClick={() => { setImageFile(null); setImagePreview(null); updateData('imageUrl', null); }}
                   className="ml-2 text-xs text-pink-400 hover:underline"
                 >
                   Remove
@@ -206,7 +197,7 @@ export default function TodoForm({
                 .split(',')
                 .map(l => l.trim())
                 .filter(Boolean);
-              setData('labels', labels);
+              updateData('labels', labels);
             }}
             className="w-full bg-[#3A3A3C] text-white placeholder-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#0A84FF] transition-all duration-200"
           />
@@ -215,7 +206,7 @@ export default function TodoForm({
         <div className="flex justify-end gap-3">
           <Button
             type="button"
-            onClick={onCancel}
+            onClick={handleCancel}
             whileTap={{ scale: 0.95 }}
             className="px-4 py-2 bg-[#3A3A3C] text-white rounded-lg hover:bg-[#48484A] transition-colors duration-200 flex items-center gap-2"
           >

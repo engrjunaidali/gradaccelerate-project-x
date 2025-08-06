@@ -7,7 +7,7 @@ import TodoForm from './todo-form'
 import ViewSwitcher from './view-switcher'
 import { z } from 'zod'
 import { TodoAuth, api } from '../../lib/TodoAuth'
-import { useTodoStore } from '../../stores/useTodosStore'
+import { useTodosStore } from '../../stores/useTodosStore'
 
 import { Button } from "../../../inertia/components/ui.js/button"
 import { TodoPriority } from '../../../app/enums/TodoPriority'
@@ -41,7 +41,7 @@ export default function Index() {
     handleCancel,
     submit,
     updateData
-  } = useTodoStore()
+  } = useTodosStore()
 
   // Load todos on component mount
   useEffect(() => {

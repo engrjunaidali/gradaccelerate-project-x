@@ -66,7 +66,7 @@ const initialFormData: TodoFormData = {
   priority: TodoPriority.MEDIUM
 }
 
-export const useTodoStore = create<TodoStore>((set, get) => ({
+export const useTodosStore = create<TodoStore>((set, get) => ({
   // Initial State
   todos: [],
   isFormVisible: false,
