@@ -1,6 +1,8 @@
 import { motion } from 'framer-motion'
 import { Save, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import axios from 'axios';
 
 import { Button } from "../../../inertia/components/ui.js/button"
@@ -10,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 
 import { TodoPriority } from '../../../app/enums/TodoPriority'
 import { TodoStatus } from '../../../app/enums/TodoStatus'
+import { todoSchema, TodoFormData } from '../../schemas/todoSchema';
 
 import { priorityColors } from "../../constants/priorityColors"
 import { TodoStatusColors } from "../../constants/TodoStatusColors"
@@ -19,34 +22,101 @@ import { useTodosStore } from '../../stores/useTodosStore';
 
 export default function TodoForm() {
   const {
-    data,
-    updateData,
-    submit,
     processing,
-    errors,
     editingTodo,
-    handleCancel
+    handleCancel,
+    createTodo,
+    updateTodo
   } = useTodosStore();
 
   const isEditing = !!editingTodo;
 
   const [isUploading, setIsUploading] = useState(false);
-
-
   const [labelsInput, setLabelsInput] = useState('')
-
   const [imageFile, setImageFile] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(data.imageUrl ?? null);
+  const [imagePreview, setImagePreview] = useState<string | null>(null);
+
+  // Initialize form with Zod validation
+  const form = useForm<TodoFormData>({
+    resolver: zodResolver(todoSchema),
+    defaultValues: {
+      title: editingTodo?.title || '',
+      content: editingTodo?.content || '',
+      status: editingTodo?.status || TodoStatus.PENDING,
+      priority: editingTodo?.priority || TodoPriority.MEDIUM,
+      labels: editingTodo?.labels || [],
+      imageUrl: editingTodo?.imageUrl || ''
+    }
+  });
+
+  const { register, handleSubmit, watch, setValue, formState: { errors }, reset } = form;
+  const watchedLabels = watch('labels');
+  const watchedImageUrl = watch('imageUrl');
+  const watchedTitle = watch('title');
 
 
 
   useEffect(() => {
-    setLabelsInput(data.labels.join(', '));
-  }, [data.labels]);
+    if (editingTodo) {
+      reset({
+        title: editingTodo.title,
+        content: editingTodo.content,
+        status: editingTodo.status,
+        priority: editingTodo.priority,
+        labels: editingTodo.labels || [],
+        imageUrl: editingTodo.imageUrl || ''
+      });
+      setLabelsInput((editingTodo.labels || []).join(', '));
+      setImagePreview(editingTodo.imageUrl);
+    } else {
+      reset({
+        title: '',
+        content: '',
+        status: TodoStatus.PENDING,
+        priority: TodoPriority.MEDIUM,
+        labels: [],
+        imageUrl: ''
+      });
+      setLabelsInput('');
+      setImagePreview(null);
+    }
+  }, [editingTodo, reset]);
 
   useEffect(() => {
-    setImagePreview(data.imageUrl ?? null);
-  }, [data.imageUrl]);
+    setLabelsInput((watchedLabels || []).join(', '));
+  }, [watchedLabels]);
+
+  useEffect(() => {
+    setImagePreview(watchedImageUrl || null);
+  }, [watchedImageUrl]);
+
+  // Form submission handler
+  const onSubmit = async (data: TodoFormData) => {
+    try {
+      if (isEditing && editingTodo) {
+        await updateTodo(editingTodo.id, data);
+      } else {
+        await createTodo(data);
+      }
+
+      // Clear form after successful submission
+      reset({
+        title: '',
+        content: '',
+        status: TodoStatus.PENDING,
+        priority: TodoPriority.MEDIUM,
+        labels: [],
+        imageUrl: ''
+      });
+
+      // Clear additional UI state
+      setLabelsInput('');
+      setImageFile(null);
+      setImagePreview(null);
+    } catch (error) {
+      console.error('Form submission error:', error);
+    }
+  };
 
   // When file input changes
   const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,7 +141,7 @@ export default function TodoForm() {
         withCredentials: true,
       });
       if (res.data.url) {
-        updateData('imageUrl', res.data.url);
+        setValue('imageUrl', res.data.url);
         setIsUploading(false);
       }
     } catch (err) {
@@ -90,17 +160,15 @@ export default function TodoForm() {
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.2 }}
     >
-      <form onSubmit={submit} className="space-y-4">
-        {errors?.title && <p className="text-red-500 text-sm mt-1">{errors.title}</p>}
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <Input
             type="text"
             placeholder="Todo title..."
-            value={data.title}
-            onChange={(e) => updateData('title', e.target.value)}
+            {...register('title')}
             onKeyDown={(e) => {
               if (e.ctrlKey && e.key === 'Enter') {
-                submit(e);
+                handleSubmit(onSubmit)();
               } else if (e.key === 'Escape') {
                 handleCancel();
               }
@@ -108,16 +176,16 @@ export default function TodoForm() {
             className="w-full"
             autoFocus
           />
+          {errors.title && <p className="text-red-500 text-sm mt-1">{errors.title.message}</p>}
         </div>
 
         <div>
           <Textarea
             placeholder="Todo content..."
-            value={data.content}
-            onChange={(e) => updateData('content', e.target.value)}
+            {...register('content')}
             onKeyDown={(e) => {
               if (e.ctrlKey && e.key === 'Enter') {
-                submit(e);
+                handleSubmit(onSubmit)();
               } else if (e.key === 'Escape') {
                 handleCancel();
               }
@@ -125,11 +193,12 @@ export default function TodoForm() {
             rows={4}
             className="w-full mb-3"
           />
+          {errors.content && <p className="text-red-500 text-sm mt-1">{errors.content.message}</p>}
 
           <div className="mb-4">
             <Select
-              value={data.status}
-              onValueChange={(value) => updateData('status', value)}
+              {...register('status')}
+              onValueChange={(value) => setValue('status', value)}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select Status" />
@@ -140,13 +209,14 @@ export default function TodoForm() {
                 <SelectItem value={TodoStatus.COMPLETED} className={TodoStatusColors[TodoStatus.COMPLETED]}>Completed</SelectItem>
               </SelectContent>
             </Select>
+            {errors.status && <p className="text-red-500 text-sm mt-1">{errors.status.message}</p>}
           </div>
 
 
           <div className="mb-4">
             <Select
-              value={data.priority}
-              onValueChange={(value) => updateData('priority', value)}
+              {...register('priority')}
+              onValueChange={(value) => setValue('priority', value)}
             >
               <SelectTrigger className="w-full">
                 <SelectValue placeholder="Select priority" />
@@ -157,6 +227,7 @@ export default function TodoForm() {
                 <SelectItem value={TodoPriority.LOW} className={priorityColors['low']}>Low Priority</SelectItem>
               </SelectContent>
             </Select>
+            {errors.priority && <p className="text-red-500 text-sm mt-1">{errors.priority.message}</p>}
           </div>
 
           <div className="mb-3">
@@ -178,7 +249,7 @@ export default function TodoForm() {
                 />
                 <button
                   type="button"
-                  onClick={() => { setImageFile(null); setImagePreview(null); updateData('imageUrl', null); }}
+                  onClick={() => { setImageFile(null); setImagePreview(null); setValue('imageUrl', ''); }}
                   className="ml-2 text-xs text-pink-400 hover:underline"
                 >
                   Remove
@@ -189,18 +260,19 @@ export default function TodoForm() {
 
           <Input
             type="text"
-            placeholder="Comma separated labels (e.g. work, personal), no space allowed"
+            placeholder="Labels (comma-separated)..."
             value={labelsInput}
-            onChange={(e) => setLabelsInput(e.target.value)}
-            onBlur={() => {
-              const labels = labelsInput
-                .split(',')
-                .map(l => l.trim())
-                .filter(Boolean);
-              updateData('labels', labels);
+            onChange={(e) => {
+              setLabelsInput(e.target.value);
+              const labels = e.target.value
+                    .split(',')
+                    .map(l => l.trim())
+                    .filter(Boolean);
+              setValue('labels', labels);
             }}
-            className="w-full bg-[#3A3A3C] text-white placeholder-gray-400 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#0A84FF] transition-all duration-200"
+            className="w-full"
           />
+          {errors.labels && <p className="text-red-500 text-sm mt-1">{errors.labels.message}</p>}
         </div>
 
         <div className="flex justify-end gap-3">
@@ -216,7 +288,7 @@ export default function TodoForm() {
 
           <Button
             type="submit"
-            disabled={processing || isUploading || !data.title.trim()}
+            disabled={processing || isUploading || !watchedTitle?.trim()}
             whileTap={{ scale: 0.95 }}
             className="px-4 py-2 text-white rounded-lg hover:bg-[#0A74FF] disabled:opacity-50 disabled:cursor-not-allowed transition-colors duration-200 flex items-center gap-2"
           >
