@@ -17,8 +17,7 @@ import { todoSchema, TodoFormData } from '../../schemas/todoSchema';
 import { priorityColors } from "../../constants/priorityColors"
 import { TodoStatusColors } from "../../constants/TodoStatusColors"
 
-
-import { useTodosStore } from '../../stores/useTodosStore';
+import useAppStore from '../../stores/store';
 
 export default function TodoForm() {
   const {
@@ -27,7 +26,7 @@ export default function TodoForm() {
     handleCancel,
     createTodo,
     updateTodo
-  } = useTodosStore();
+  } = useAppStore();
 
   const isEditing = !!editingTodo;
 

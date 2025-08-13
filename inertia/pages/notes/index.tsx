@@ -7,7 +7,7 @@ import NoteForm from './note-form'
 import ViewSwitcher from './view-switcher'
 import { PageProps as InertiaPageProps } from '@inertiajs/core'
 import { NoteStatus } from '../../../app/enums/NoteStatus.js'
-import { useNotesStore } from '../../stores/useNotesStore' // Adjust path as needed
+import useAppStore from '../../stores/store';
 
 import { Button } from "../../../inertia/components/ui.js/button"
 import { Input } from "../../../inertia/components/ui.js/input"
@@ -80,7 +80,7 @@ export default function Index() {
     handleLogout,
     setDeleteConfirm,
     closeForm
-  } = useNotesStore()
+  } = useAppStore()
 
   const getSortIcon = (field: SortField) => {
     if (sortConfig.field !== field) {

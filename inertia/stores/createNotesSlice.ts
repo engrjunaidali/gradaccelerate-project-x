@@ -1,140 +1,32 @@
-import { create } from 'zustand'
+import { StateCreator } from 'zustand'
 import { router } from '@inertiajs/react'
 import axios from 'axios'
 import { NoteStatus } from '../../app/enums/NoteStatus.js'
+import type {
+  NotesSlice,
+  TodosSlice,
+  Note,
+  NoteFormData,
+  NotesData,
+  SortField,
+  SortDirection,
+  GiphyGif
+} from './storeTypes'
 
-interface Note {
-  id: number;
-  title: string;
-  content: string;
-  status: any; // Replace with your NoteStatus type
-  pinned: boolean;
-  createdAt: string;
-  updatedAt: string | null;
-  labels?: string[];
+const initialNoteFormData: NoteFormData = {
+  title: '',
+  content: '',
+  status: NoteStatus.PENDING,
+  pinned: false,
+  labels: []
 }
 
-interface GiphyGif {
-  id: string
-  title: string
-  url: string
-  images: {
-    original: {
-      url: string
-      width: string
-      height: string
-    }
-    fixed_height: {
-      url: string
-      width: string
-      height: string
-    }
-    fixed_width: {
-      url: string
-      width: string
-      height: string
-    }
-    preview_gif: {
-      url: string
-      width: string
-      height: string
-    }
-  }
-}
-
-interface FormData {
-  title: string;
-  content: string;
-  status: any;
-  pinned: boolean;
-  labels: string[];
-}
-
-interface PaginationMeta {
-  current_page: number;
-  last_page: number;
-  per_page: number;
-  total: number;
-  from: number;
-  to: number;
-}
-
-interface NotesData {
-  data: Note[];
-  meta: PaginationMeta;
-}
-
-type ViewType = 'grid' | 'list'
-type SortField = 'created_at' | 'updated_at' | 'title'
-type SortDirection = 'asc' | 'desc'
-
-interface SortConfig {
-  field: SortField;
-  direction: SortDirection;
-}
-
-interface NotesState {
-  // UI State
-  isFormVisible: boolean;
-  viewType: ViewType;
-  selectedLabel: string | null;
-  searchQuery: string;
-  sortConfig: SortConfig;
-  deleteConfirm: number | null;
-  isEditing: boolean;
-  editingNoteId: number | null;
-
-  // Form State
-  showPreview: boolean;
-  shareableLink: string | null;
-  showGiphyPicker: boolean;
-  giphySearchQuery: string;
-  formData: FormData;
-  processing: boolean;
-  errors: Record<string, string>;
-
-  // Note Card Utilities
-  getStatusColor: (status: string) => string;
-
-  // Actions
-  setIsFormVisible: (visible: boolean) => void;
-  setViewType: (type: ViewType) => void;
-  setSelectedLabel: (label: string | null) => void;
-  setSearchQuery: (query: string) => void;
-  setSortConfig: (config: SortConfig) => void;
-  setDeleteConfirm: (id: number | null) => void;
-  setIsEditing: (editing: boolean) => void;
-  setEditingNoteId: (id: number | null) => void;
-
-  // Form Actions
-  setShowPreview: (show: boolean) => void;
-  setShareableLink: (link: string | null) => void;
-  setShowGiphyPicker: (show: boolean) => void;
-  setGiphySearchQuery: (query: string) => void;
-  setFormData: (data: Partial<FormData>) => void;
-  setProcessing: (processing: boolean) => void;
-  setErrors: (errors: Record<string, string>) => void;
-  resetFormData: () => void;
-
-  // Complex Actions
-  handleEdit: (note: Note) => void;
-  handleDelete: (id: number) => void;
-  handlePageChange: (page: number, notesData: NotesData) => void;
-  handleSearch: (value: string) => void;
-  handleTogglePin: (id: number) => void;
-  handleSort: (field: SortField, currentPage: number) => void;
-  handleLogout: () => void;
-  resetForm: () => void;
-  closeForm: () => void;
-
-  // Form Complex Actions
-  handleShare: (editingNote: Note | null) => Promise<void>;
-  handleSubmit: (e: React.FormEvent, editingNote: Note | null, onSuccess?: () => void) => void;
-  handleContentChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  handleGifSelect: (gif: GiphyGif, textareaRef: React.RefObject<HTMLTextAreaElement>) => void;
-}
-
-export const useNotesStore = create<NotesState>((set, get) => ({
+export const createNotesSlice: StateCreator<
+  NotesSlice & TodosSlice,
+  [],
+  [],
+  NotesSlice
+> = (set, get) => ({
   // Initial state
   isFormVisible: false,
   viewType: 'grid',
@@ -153,13 +45,7 @@ export const useNotesStore = create<NotesState>((set, get) => ({
   shareableLink: null,
   showGiphyPicker: false,
   giphySearchQuery: '',
-  formData: {
-    title: '',
-    content: '',
-    status: NoteStatus.PENDING,
-    pinned: false,
-    labels: []
-  },
+  formData: initialNoteFormData,
   processing: false,
   errors: {},
 
@@ -192,13 +78,7 @@ export const useNotesStore = create<NotesState>((set, get) => ({
   setProcessing: (processing) => set({ processing }),
   setErrors: (errors) => set({ errors }),
   resetFormData: () => set({
-    formData: {
-      title: '',
-      content: '',
-      status: NoteStatus.PENDING,
-      pinned: false,
-      labels: []
-    },
+    formData: initialNoteFormData,
     errors: {},
     showPreview: false,
     shareableLink: null,
@@ -208,10 +88,36 @@ export const useNotesStore = create<NotesState>((set, get) => ({
 
   // Complex actions
   handleEdit: (note) => {
-    set({
-      isEditing: true,
-      editingNoteId: note.id,
-      isFormVisible: true
+    console.log('handleEdit called with note:', note);
+
+    // Ensure proper type conversion and fallbacks
+    const formData: NoteFormData = {
+      title: note.title || '',
+      content: note.content || '',
+      status: note.status || NoteStatus.PENDING,
+      pinned: Boolean(note.pinned),
+      labels: Array.isArray(note.labels) ? note.labels : []
+    };
+
+    console.log('Setting form data to:', formData);
+
+    // Use functional update to ensure state is set properly
+    set((state) => {
+      console.log('Previous state:', state.formData);
+      const newState = {
+        isEditing: true,
+        editingNoteId: note.id,
+        isFormVisible: true,
+        formData,
+        // Reset other form-related state
+        errors: {},
+        showPreview: false,
+        shareableLink: null,
+        showGiphyPicker: false,
+        giphySearchQuery: ''
+      };
+      console.log('New state will be:', newState);
+      return newState;
     });
   },
 
@@ -289,7 +195,13 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     set({
       isEditing: false,
       editingNoteId: null,
-      isFormVisible: false
+      isFormVisible: false,
+      formData: initialNoteFormData,
+      errors: {},
+      showPreview: false,
+      shareableLink: null,
+      showGiphyPicker: false,
+      giphySearchQuery: ''
     });
   },
 
@@ -297,7 +209,13 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     set({
       isEditing: false,
       editingNoteId: null,
-      isFormVisible: false
+      isFormVisible: false,
+      formData: initialNoteFormData,
+      errors: {},
+      showPreview: false,
+      shareableLink: null,
+      showGiphyPicker: false,
+      giphySearchQuery: ''
     });
   },
 
@@ -317,8 +235,11 @@ export const useNotesStore = create<NotesState>((set, get) => ({
     const { formData } = get();
     set({ processing: true, errors: {} });
 
+    // Convert formData to a plain object to fix the type issue
+    const formDataObject = { ...formData } as Record<string, any>;
+
     if (editingNote) {
-      router.put(`/notes/${editingNote.id}`, formData, {
+      router.put(`/notes/${editingNote.id}`, formDataObject, {
         onSuccess: () => {
           set({ processing: false });
           onSuccess?.();
@@ -329,7 +250,7 @@ export const useNotesStore = create<NotesState>((set, get) => ({
         }
       });
     } else {
-      router.post('/notes', formData, {
+      router.post('/notes', formDataObject, {
         onSuccess: () => {
           set({ processing: false });
           onSuccess?.();
@@ -394,4 +315,4 @@ export const useNotesStore = create<NotesState>((set, get) => ({
 
     set({ showGiphyPicker: false, giphySearchQuery: '' });
   }
-}));
+})

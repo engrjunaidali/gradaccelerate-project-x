@@ -5,7 +5,7 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 import rehypeHighlight from 'rehype-highlight'
 import { NoteStatus } from '../../../app/enums/NoteStatus.js'
-import { useNotesStore } from '../../stores/useNotesStore'
+import useAppStore from '../../stores/store';
 import { Button } from "../../../inertia/components/ui.js/button"
 
 
@@ -25,7 +25,7 @@ interface NoteCardProps {
 }
 
 export default function NoteCard({ note }: NoteCardProps) {
-  const { viewType, getStatusColor, handleEdit, handleDelete, handleTogglePin } = useNotesStore()
+  const { viewType, getStatusColor, handleEdit, handleDelete, handleTogglePin } = useAppStore()
   const timeAgo = formatDistanceToNow(new Date(note.createdAt), { addSuffix: true })
 
   return (

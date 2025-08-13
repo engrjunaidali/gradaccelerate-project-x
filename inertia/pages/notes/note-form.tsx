@@ -10,7 +10,7 @@ import rehypeHighlight from 'rehype-highlight'
 import { NoteStatus } from "../../../app/enums/NoteStatus.js"
 import { noteSchema, type NoteFormData } from '../../schemas/noteSchema'
 import GiphyPicker from '../../components/GiphyPicker'
-import { useNotesStore } from '../../stores/useNotesStore'
+import useAppStore from '../../stores/store.js'
 
 import { Button } from "../../../inertia/components/ui.js/button"
 import { Input } from "../../../inertia/components/ui.js/input"
@@ -52,7 +52,7 @@ export default function NoteForm({
     showGiphyPicker,
     giphySearchQuery,
     handleGifSelect
-  } = useNotesStore()
+  } = useAppStore()
 
   // Initialize form with Zod validation
   const form = useForm<NoteFormData>({
@@ -176,8 +176,8 @@ export default function NoteForm({
       const giphyMatch = value.match(/\/giphy\s+(.+)/)
       if (giphyMatch) {
         const searchTerm = giphyMatch[1]
-        useNotesStore.getState().setGiphySearchQuery(searchTerm)
-        useNotesStore.getState().setShowGiphyPicker(true)
+        useAppStore.getState().setGiphySearchQuery(searchTerm)
+        useAppStore.getState().setShowGiphyPicker(true)
       }
     }
   }
@@ -211,9 +211,9 @@ export default function NoteForm({
               textareaRef.current.focus()
             }
 
-            useNotesStore.getState().setShowGiphyPicker(false)
+            useAppStore.getState().setShowGiphyPicker(false)
           }}
-          onClose={() => useNotesStore.getState().setShowGiphyPicker(false)}
+          onClose={() => useAppStore.getState().setShowGiphyPicker(false)}
         />
       )}
 

@@ -1,63 +1,15 @@
-import { create } from 'zustand'
+import { StateCreator } from 'zustand'
 import { api } from '../lib/TodoAuth'
 import { TodoStatus } from '../../app/enums/TodoStatus'
 import { TodoPriority } from '../../app/enums/TodoPriority'
+import type {
+  NotesSlice,
+  TodosSlice,
+  Todo,
+  TodoFormData
+} from './storeTypes'
 
-interface Todo {
-  id: number;
-  title: string;
-  content: string;
-  status: typeof TodoStatus;
-  labels: string[] | null;
-  imageUrl: string | null;
-  priority: typeof TodoPriority;
-  createdAt: string;
-  updatedAt: string | null;
-}
-
-interface TodoFormData {
-  title: string;
-  content: string;
-  status: typeof TodoStatus;
-  labels: string[];
-  imageUrl: string;
-  priority: typeof TodoPriority;
-}
-
-interface TodoStore {
-  // State
-  todos: Todo[]
-  isFormVisible: boolean
-  editingTodo: Todo | null
-  viewType: 'grid' | 'list'
-  errors: { [key: string]: string }
-  processing: boolean
-  data: TodoFormData
-
-  // Actions
-  setTodos: (todos: Todo[]) => void
-  setIsFormVisible: (visible: boolean) => void
-  setEditingTodo: (todo: Todo | null) => void
-  setViewType: (type: 'grid' | 'list') => void
-  setErrors: (errors: { [key: string]: string }) => void
-  setProcessing: (processing: boolean) => void
-  setData: (data: TodoFormData) => void
-  updateData: (field: keyof TodoFormData, value: any) => void
-
-  // API Actions
-  loadTodos: () => Promise<void>
-  createTodo: (todoData: TodoFormData) => Promise<void>
-  updateTodo: (id: number, todoData: TodoFormData) => Promise<void>
-  deleteTodo: (id: number) => Promise<void>
-
-  // Form Actions
-  resetForm: () => void
-  handleEdit: (todo: Todo) => void
-  handleCancel: () => void
-  submit: (e: React.FormEvent) => Promise<void>
-}
-
-const initialFormData: TodoFormData = {
+const initialTodoFormData: TodoFormData = {
   title: '',
   content: '',
   status: TodoStatus.PENDING,
@@ -66,7 +18,12 @@ const initialFormData: TodoFormData = {
   priority: TodoPriority.MEDIUM
 }
 
-export const useTodosStore = create<TodoStore>((set, get) => ({
+export const createTodosSlice: StateCreator<
+  NotesSlice & TodosSlice,
+  [],
+  [],
+  TodosSlice
+> = (set, get) => ({
   // Initial State
   todos: [],
   isFormVisible: false,
@@ -74,7 +31,7 @@ export const useTodosStore = create<TodoStore>((set, get) => ({
   viewType: 'grid',
   errors: {},
   processing: false,
-  data: initialFormData,
+  data: initialTodoFormData,
 
   // Basic Setters
   setTodos: (todos) => set({ todos }),
@@ -97,7 +54,7 @@ export const useTodosStore = create<TodoStore>((set, get) => ({
     try {
       const response = await api.get('/api/todos')
       set({ todos: response.data.todos || [] })
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to load todos:', error)
       if (error.response?.status === 401) {
         window.location.href = '/auth/jwt/login'
@@ -143,7 +100,7 @@ export const useTodosStore = create<TodoStore>((set, get) => ({
 
   // Form Actions
   resetForm: () => set({
-    data: initialFormData,
+    data: initialTodoFormData,
     errors: {}
   }),
 
@@ -166,7 +123,7 @@ export const useTodosStore = create<TodoStore>((set, get) => ({
     set({
       isFormVisible: false,
       editingTodo: null,
-      data: initialFormData,
+      data: initialTodoFormData,
       errors: {}
     })
   },
@@ -192,7 +149,7 @@ export const useTodosStore = create<TodoStore>((set, get) => ({
         isFormVisible: false,
         editingTodo: null
       })
-    } catch (error) {
+    } catch (error: any) {
       // Handle validation errors (you'll need to import z from 'zod')
       if (error.name === 'ZodError') {
         const fieldErrors: { [key: string]: string } = {}
@@ -211,4 +168,4 @@ export const useTodosStore = create<TodoStore>((set, get) => ({
       set({ processing: false })
     }
   }
-}))
+})
