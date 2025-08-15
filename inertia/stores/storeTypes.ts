@@ -163,6 +163,9 @@ export interface TodosSlice {
   processing: boolean;
   data: TodoFormData;
 
+  selectedTodo: Todo | null;
+  isViewModalOpen: boolean;
+
   // Actions
   setTodos: (todos: Todo[]) => void;
   setIsFormVisible: (visible: boolean) => void;
@@ -172,6 +175,9 @@ export interface TodosSlice {
   setProcessing: (processing: boolean) => void;
   setData: (data: TodoFormData) => void;
   updateData: (field: keyof TodoFormData, value: any) => void;
+
+  setSelectedTodo: (todo: Todo | null) => void;
+  setIsViewModalOpen: (open: boolean) => void;
 
   // API Actions
   loadTodos: () => Promise<void>;
@@ -184,4 +190,7 @@ export interface TodosSlice {
   handleEdit: (todo: Todo) => void;
   handleCancel: () => void;
   submit: (e: React.FormEvent) => Promise<void>;
+
+  handleView: (todo: Todo) => void;
+  handleDelete: (id: number) => void;
 }

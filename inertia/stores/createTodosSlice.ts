@@ -33,6 +33,10 @@ export const createTodosSlice: StateCreator<
   processing: false,
   data: initialTodoFormData,
 
+  // Modal State
+  selectedTodo: null,
+  isViewModalOpen: false,
+
   // Basic Setters
   setTodos: (todos) => set({ todos }),
   setIsFormVisible: (isFormVisible) => set({ isFormVisible }),
@@ -48,6 +52,10 @@ export const createTodosSlice: StateCreator<
       [field]: value
     }
   })),
+
+  // Modal Setters
+  setSelectedTodo: (todo) => set({ selectedTodo: todo }),
+  setIsViewModalOpen: (open) => set({ isViewModalOpen: open }),
 
   // API Actions
   loadTodos: async () => {
@@ -92,7 +100,11 @@ export const createTodosSlice: StateCreator<
     try {
       await api.delete(`/api/todos/${id}`)
       const { todos } = get()
-      set({ todos: todos.filter(todo => todo.id !== id) })
+      set({
+        todos: todos.filter(todo => todo.id !== id),
+        selectedTodo: null,
+        isViewModalOpen: false
+      })
     } catch (error) {
       console.error('Delete error:', error)
     }
@@ -167,5 +179,15 @@ export const createTodosSlice: StateCreator<
     } finally {
       set({ processing: false })
     }
+  },
+
+  // Modal Actions
+  handleView: (todo) => {
+    set({ selectedTodo: todo, isViewModalOpen: true })
+  },
+
+  handleDelete: async (id) => {
+    const { deleteTodo } = get()
+    await deleteTodo(id)
   }
 })

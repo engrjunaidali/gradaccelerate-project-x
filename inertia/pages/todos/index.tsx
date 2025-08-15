@@ -8,7 +8,6 @@ import ViewSwitcher from './view-switcher'
 import { z } from 'zod'
 import { TodoAuth, api } from '../../lib/TodoAuth'
 import useAppStore from '../../stores/store'
-import { useTodoCardStore } from '../../stores/useTodoCardStore'
 
 import { Button } from "../../../inertia/components/ui.js/button"
 import { TodoPriority } from '../../../app/enums/TodoPriority'
@@ -49,13 +48,7 @@ export default function Index() {
     loadTodos()
   }, [loadTodos])
 
-  const { handleEdit: cardHandleEdit, handleDelete: cardHandleDelete } = useTodoCardStore();
 
-  // Connect store actions
-  useEffect(() => {
-    cardHandleEdit(handleEdit);
-    cardHandleDelete(deleteTodo);
-  }, [handleEdit, deleteTodo]);
 
   const handleLogout = async () => {
     try {

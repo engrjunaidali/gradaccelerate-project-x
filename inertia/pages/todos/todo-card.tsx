@@ -9,7 +9,7 @@ import { priorityColors } from "../../constants/priorityColors"
 import { TodoPriority } from "../../../app/enums/TodoPriority"
 import { TodoStatus } from "../../../app/enums/TodoStatus"
 import { TodoStatusColors } from "../../constants/TodoStatusColors"
-import { useTodoCardStore } from '../../stores/useTodoCardStore'
+import useAppStore from '../../stores/store'
 
 interface Todo {
   id: number
@@ -31,7 +31,7 @@ interface TodoCardProps {
 }
 
 export default function TodoCard({ todo, viewType, onEdit, onDelete }: TodoCardProps) {
-  const { handleView, handleEdit, handleDelete } = useTodoCardStore()
+  const { handleView, handleEdit, handleDelete } = useAppStore()
 
   const onViewClick = () => {
     handleView(todo)
