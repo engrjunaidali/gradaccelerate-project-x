@@ -87,8 +87,8 @@ export const createNotesSlice: StateCreator<
   }),
 
   // Complex actions
-  handleEdit: (note) => {
-    console.log('handleEdit called with note:', note);
+  handleNoteEdit: (note) => {
+    console.log('handleNoteEdit called with note:', note);
 
     // Ensure proper type conversion and fallbacks
     const formData: NoteFormData = {

@@ -31,7 +31,7 @@ interface TodoCardProps {
 }
 
 export default function TodoCard({ todo, viewType, onEdit, onDelete }: TodoCardProps) {
-  const { handleView, handleEdit, handleTodoDelete } = useAppStore()
+  const { handleView, handleTodoEdit, handleTodoDelete } = useAppStore()
 
   const onViewClick = () => {
     handleView(todo)
@@ -42,8 +42,8 @@ export default function TodoCard({ todo, viewType, onEdit, onDelete }: TodoCardP
   const onEditClick = () => {
     if (onEdit) {
       onEdit(todo)
-    } else if (handleEdit) {
-      handleEdit(todo)
+    } else if (handleTodoEdit) {
+      handleTodoEdit(todo)
     }
   }
 

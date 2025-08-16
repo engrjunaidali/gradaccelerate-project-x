@@ -135,7 +135,7 @@ export interface NotesSlice {
   resetFormData: () => void;
 
   // Complex Actions
-  handleEdit: (note: Note) => void;
+  handleNoteEdit: (note: Note) => void;
   handleNoteDelete: (id: number) => void;
   handlePageChange: (page: number, notesData: NotesData) => void;
   handleSearch: (value: string) => void;
@@ -187,7 +187,7 @@ export interface TodosSlice {
 
   // Form Actions
   resetForm: () => void;
-  handleEdit: (todo: Todo) => void;
+  handleTodoEdit: (todo: Todo) => void;
   handleCancel: () => void;
   submit: (e: React.FormEvent) => Promise<void>;
 

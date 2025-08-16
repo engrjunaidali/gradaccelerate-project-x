@@ -116,7 +116,7 @@ export const createTodosSlice: StateCreator<
     errors: {}
   }),
 
-  handleEdit: (todo) => {
+  handleTodoEdit: (todo) => {
     set({
       data: {
         title: todo.title,

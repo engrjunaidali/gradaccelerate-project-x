@@ -71,7 +71,7 @@ export default function Index() {
     setIsFormVisible,
     setViewType,
     setSelectedLabel,
-    handleEdit,
+    handleNoteEdit,
     handleNoteDelete,
     handlePageChange,
     handleSearch,
@@ -291,7 +291,7 @@ export default function Index() {
                     note={note}
                     viewType={viewType}
                     onDelete={() => setDeleteConfirm(note.id)}
-                    onEdit={() => handleEdit(note)}
+                    onEdit={() => handleNoteEdit(note)}
                     onTogglePin={() => handleTogglePin(note.id)}
                   />
                 </motion.div>
