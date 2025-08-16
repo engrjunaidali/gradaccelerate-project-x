@@ -9,6 +9,8 @@ import { priorityColors } from "../../constants/priorityColors"
 import { TodoPriority } from "../../../app/enums/TodoPriority"
 import { TodoStatus } from "../../../app/enums/TodoStatus"
 import { TodoStatusColors } from "../../constants/TodoStatusColors"
+import useAppStore from '../../stores/store'
+
 interface Todo {
   id: number
   title: string
@@ -24,14 +26,33 @@ interface Todo {
 interface TodoCardProps {
   todo: Todo
   viewType: 'grid' | 'list'
-  onEdit: (todo: Todo) => void
-  onDelete: (id: number) => void
+  onEdit?: (todo: Todo) => void
+  onDelete?: (id: number) => void
 }
 
 export default function TodoCard({ todo, viewType, onEdit, onDelete }: TodoCardProps) {
+  const { handleView, handleEdit, handleDelete } = useAppStore()
 
-  const handleView = () => {
-    router.visit(`/todos/${todo.id}`)
+  const onViewClick = () => {
+    handleView(todo)
+    // Fallback to router if store action not available
+    if (!handleView) router.visit(`/todos/${todo.id}`)
+  }
+
+  const onEditClick = () => {
+    if (onEdit) {
+      onEdit(todo)
+    } else if (handleEdit) {
+      handleEdit(todo)
+    }
+  }
+
+  const onDeleteClick = () => {
+    if (onDelete) {
+      onDelete(todo.id)
+    } else if (handleDelete) {
+      handleDelete(todo.id)
+    }
   }
 
   return (
@@ -95,7 +116,7 @@ export default function TodoCard({ todo, viewType, onEdit, onDelete }: TodoCardP
 
         <Button
           whileTap={{ scale: 0.9 }}
-          onClick={handleView}
+          onClick={onViewClick}
           className="p-2 bg-[#34C759] text-white hover:bg-[#30B855] transition-colors duration-200 rounded-full"
           title="View todo"
         >
@@ -104,7 +125,7 @@ export default function TodoCard({ todo, viewType, onEdit, onDelete }: TodoCardP
 
         <Button
           whileTap={{ scale: 0.9 }}
-          onClick={() => onEdit(todo)}
+          onClick={onEditClick}
           className="p-2 bg-[#0A84FF] text-white hover:bg-[#0A74FF] transition-colors duration-200 rounded-full"
           title="Edit todo"
         >
@@ -113,7 +134,7 @@ export default function TodoCard({ todo, viewType, onEdit, onDelete }: TodoCardP
 
         <Button
           whileTap={{ scale: 0.9 }}
-          onClick={() => onDelete(todo.id)}
+          onClick={onDeleteClick}
           className="p-2 bg-[#FF3B30] text-white hover:bg-[#FF2D20] transition-colors duration-200  rounded-full"
           title="Delete todo"
         >

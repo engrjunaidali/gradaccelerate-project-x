@@ -1,89 +1,17 @@
 import { Head, Link } from '@inertiajs/react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import { PlusIcon, XIcon, ArrowLeft, LogOut } from 'lucide-react'
 import TodoCard from './todo-card'
 import TodoForm from './todo-form'
 import ViewSwitcher from './view-switcher'
 import { z } from 'zod'
 import { TodoAuth, api } from '../../lib/TodoAuth'
+import useAppStore from '../../stores/store'
 
 import { Button } from "../../../inertia/components/ui.js/button"
 import { TodoPriority } from '../../../app/enums/TodoPriority'
 import { TodoStatus } from '../../../app/enums/TodoStatus'
-
-interface Todo {
-  id: number;
-  title: string;
-  content: string;
-  status: typeof TodoStatus;
-  labels: string[] | null;
-  imageUrl: string | null;
-  priority: typeof TodoPriority;
-  createdAt: string;
-  updatedAt: string | null;
-}
-
-type ViewType = 'grid' | 'list'
-
-export default function Index() {
-  const [todos, setTodos] = useState<Todo[]>([])
-  const [isFormVisible, setIsFormVisible] = useState(false)
-  const [editingTodo, setEditingTodo] = useState<Todo | null>(null)
-  const [viewType, setViewType] = useState<ViewType>('grid')
-  const [errors, setErrors] = useState<{ [key: string]: string }>({})
-  const [processing, setProcessing] = useState(false)
-  const [data, setData] = useState({
-    title: '',
-    content: '',
-    status: TodoStatus.PENDING,
-    labels: [] as string[],
-    imageUrl: '',
-    priority: TodoPriority.MEDIUM
-  })
-
-  const resetForm = () => {
-    setData({
-      title: '',
-      content: '',
-      status: TodoStatus.PENDING,
-      labels: [],
-      imageUrl: '',
-      priority: TodoPriority.MEDIUM
-    })
-    setErrors({})
-  }
-
-  const handleEdit = (todo: Todo) => {
-    setData({
-      title: todo.title,
-      content: todo.content,
-      status: todo?.status || TodoStatus.PENDING,
-      labels: todo.labels || [],
-      imageUrl: todo.imageUrl || '',
-      priority: todo?.priority || TodoPriority.MEDIUM
-    })
-    setEditingTodo(todo)
-    setIsFormVisible(true)
-  }
-
-  // Load todos on component mount
-  useEffect(() => {
-    loadTodos()
-  }, [])
-
-  const loadTodos = async () => {
-    try {
-      const response = await api.get('/api/todos')
-      setTodos(response.data.todos || [])
-    } catch (error) {
-      console.error('Failed to load todos:', error)
-      // If unauthorized, redirect to login
-      if (error.response?.status === 401) {
-        window.location.href = '/auth/jwt/login'
-      }
-    }
-  }
 
   const TodoSchema = z.object({
     title: z.string().trim().min(1, 'Title is required'),
@@ -95,84 +23,32 @@ export default function Index() {
     user_id: z.number().optional()
   })
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setProcessing(true)
+export default function Index() {
+  // Get state and actions from Zustand store
+  const {
+    todos,
+    isFormVisible,
+    editingTodo,
+    viewType,
+    errors,
+    processing,
+    data,
+    setIsFormVisible,
+    setViewType,
+    loadTodos,
+    handleEdit,
+    deleteTodo,
+    handleCancel,
+    submit,
+    updateData
+  } = useAppStore()
 
-    try {
-      const validatedData = TodoSchema.parse(data)
-      setErrors({})
+  // Load todos on component mount
+  useEffect(() => {
+    loadTodos()
+  }, [loadTodos])
 
-      if (editingTodo) {
-        // Update existing todo
-        const response = await api.put(`/api/todos/${editingTodo.id}`, validatedData)
-        const updatedTodo = response.data.todo
 
-        setTodos(todos.map(todo =>
-          todo.id === editingTodo.id ? updatedTodo : todo
-        ))
-      } else {
-        // Create new todo
-        const response = await api.post('/api/todos', validatedData)
-        const newTodo = response.data.todo
-
-        setTodos([newTodo, ...todos])
-      }
-
-      reset()
-      setIsFormVisible(false)
-      setEditingTodo(null)
-    } catch (error) {
-      if (error instanceof z.ZodError) {
-        const fieldErrors: { [key: string]: string } = {}
-        error.issues.forEach(err => {
-          if (err.path[0]) {
-            const key = err.path[0] as string
-            fieldErrors[key] = err.message
-          }
-        })
-        setErrors(fieldErrors)
-      } else {
-        console.error('Submit error:', error)
-        setErrors({ general: 'An error occurred. Please try again.' })
-      }
-    } finally {
-      setProcessing(false)
-    }
-  }
-
-  const reset = () => {
-    setData({
-      title: '',
-      content: '',
-      labels: [],
-      imageUrl: ''
-    })
-  }
-
-  const handleDelete = async (id: number) => {
-    try {
-      await api.delete(`/api/todos/${id}`)
-      setTodos(todos.filter(todo => todo.id !== id))
-    } catch (error) {
-      console.error('Delete error:', error)
-    }
-  }
-
-  const handleCancel = () => {
-    setIsFormVisible(false)
-    setEditingTodo(null)
-    reset()
-  }
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
-      submit(e as any)
-    }
-    if (e.key === 'Escape') {
-      handleCancel()
-    }
-  }
 
   const handleLogout = async () => {
     try {
@@ -185,12 +61,21 @@ export default function Index() {
     }
   }
 
-  // Custom setData function to match TodoForm expectations
-  const updateData = (field: string, value: any) => {
-    setData(prev => ({
-      ...prev,
-      [field]: value
-    }))
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+      submit(e as any)
+    }
+    if (e.key === 'Escape') {
+      handleCancel()
+    }
+  }
+
+  const toggleForm = () => {
+    if (isFormVisible) {
+      handleCancel()
+    } else {
+      setIsFormVisible(true)
+    }
   }
 
   return (
@@ -234,7 +119,7 @@ export default function Index() {
               </Button>
               <Button
                 whileTap={{ scale: 0.95 }}
-                onClick={() => setIsFormVisible(!isFormVisible)}
+                onClick={toggleForm}
                 className="text-white border-white border rounded-full shadow-lg hover:bg-[#0A74FF] transition-colors duration-200"
               >
                 {isFormVisible ? <XIcon size={20} /> : <PlusIcon size={20} />}
@@ -303,7 +188,7 @@ export default function Index() {
                     todo={todo}
                     viewType={viewType}
                     onEdit={handleEdit}
-                    onDelete={handleDelete}
+                    onDelete={deleteTodo}
                   />
                 </motion.div>
               ))}
