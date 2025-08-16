@@ -71,8 +71,8 @@ export default function Index() {
     setIsFormVisible,
     setViewType,
     setSelectedLabel,
-    handleEdit,
-    handleDelete,
+    handleNoteEdit,
+    handleNoteDelete,
     handlePageChange,
     handleSearch,
     handleTogglePin,
@@ -291,7 +291,7 @@ export default function Index() {
                     note={note}
                     viewType={viewType}
                     onDelete={() => setDeleteConfirm(note.id)}
-                    onEdit={() => handleEdit(note)}
+                    onEdit={() => handleNoteEdit(note)}
                     onTogglePin={() => handleTogglePin(note.id)}
                   />
                 </motion.div>
@@ -368,7 +368,7 @@ export default function Index() {
                 Cancel
               </Button>
               <Button
-                onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
+                onClick={() => deleteConfirm && handleNoteDelete(deleteConfirm)}
                 className="flex-1 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
               >
                 Delete

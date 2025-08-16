@@ -36,7 +36,7 @@ export default function Index() {
     setIsFormVisible,
     setViewType,
     loadTodos,
-    handleEdit,
+    handleTodoEdit,
     deleteTodo,
     handleCancel,
     submit,
@@ -187,7 +187,7 @@ export default function Index() {
                   <TodoCard
                     todo={todo}
                     viewType={viewType}
-                    onEdit={handleEdit}
+                    onEdit={handleTodoEdit}
                     onDelete={deleteTodo}
                   />
                 </motion.div>

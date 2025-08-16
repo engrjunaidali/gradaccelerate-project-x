@@ -25,7 +25,7 @@ interface NoteCardProps {
 }
 
 export default function NoteCard({ note }: NoteCardProps) {
-  const { viewType, getStatusColor, handleEdit, handleDelete, handleTogglePin } = useAppStore()
+  const { viewType, getStatusColor, handleNoteEdit, handleNoteDelete, handleTogglePin } = useAppStore()
   const timeAgo = formatDistanceToNow(new Date(note.createdAt), { addSuffix: true })
 
   return (
@@ -146,7 +146,7 @@ export default function NoteCard({ note }: NoteCardProps) {
         <Button
           onClick={(e) => {
             e.stopPropagation();
-            handleEdit(note);
+            handleNoteEdit(note);
           }}
           className="p-1.5 rounded-full bg-[#3A3A3C] text-[#98989D] hover:bg-[#4A4A4C] hover:text-white transition-colors"
           title="Edit note"
@@ -159,7 +159,7 @@ export default function NoteCard({ note }: NoteCardProps) {
         <Button
           onClick={(e) => {
             e.stopPropagation();
-            handleDelete(note.id);
+            handleNoteDelete(note.id);
           }}
           className="p-1.5 rounded-full bg-[#3A3A3C] text-[#98989D] hover:bg-red-500 hover:text-white transition-colors"
           title="Delete note"
