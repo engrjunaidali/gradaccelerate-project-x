@@ -72,7 +72,7 @@ export default function Index() {
     setViewType,
     setSelectedLabel,
     handleEdit,
-    handleDelete,
+    handleNoteDelete,
     handlePageChange,
     handleSearch,
     handleTogglePin,
@@ -368,7 +368,7 @@ export default function Index() {
                 Cancel
               </Button>
               <Button
-                onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
+                onClick={() => deleteConfirm && handleNoteDelete(deleteConfirm)}
                 className="flex-1 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600"
               >
                 Delete

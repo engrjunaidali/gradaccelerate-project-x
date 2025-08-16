@@ -121,7 +121,7 @@ export const createNotesSlice: StateCreator<
     });
   },
 
-  handleDelete: (id) => {
+  handleNoteDelete: (id) => {
     router.delete(`/notes/${id}`, {
       preserveState: true,
       preserveScroll: true,

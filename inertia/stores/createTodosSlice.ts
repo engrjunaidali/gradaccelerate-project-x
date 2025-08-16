@@ -186,7 +186,7 @@ export const createTodosSlice: StateCreator<
     set({ selectedTodo: todo, isViewModalOpen: true })
   },
 
-  handleDelete: async (id) => {
+  handleTodoDelete: async (id) => {
     const { deleteTodo } = get()
     await deleteTodo(id)
   }
