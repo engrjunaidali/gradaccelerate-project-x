@@ -30,6 +30,13 @@ export default function BookmarkForm({
 }: BookmarkFormProps) {
   const titleInputRef = useRef<HTMLInputElement>(null)
   const [processing, setProcessing] = useState(false)
+  const [fetchingMetadata, setFetchingMetadata] = useState(false)
+  const [metadataPreview, setMetadataPreview] = useState<{
+    title?: string
+    description?: string
+    imageUrl?: string
+    siteName?: string
+  } | null>(null)
 
   // Initialize form with Zod validation
   const form = useForm<BookmarkFormData>({
@@ -44,6 +51,7 @@ export default function BookmarkForm({
 
   const { register, handleSubmit, watch, setValue, formState: { errors }, reset } = form
   const watchedIsFavorite = watch('isFavorite')
+  const watchedUrl = watch('url')
 
   // Focus title input when form opens
   useEffect(() => {
@@ -69,6 +77,36 @@ export default function BookmarkForm({
     }
   }, [isEditing, editingBookmark?.id, reset])
 
+  const fetchMetadata = async (url: string) => {
+    if (!url || !url.startsWith('http')) return
+
+    setFetchingMetadata(true)
+    try {
+      const response = await fetch('/api/bookmarks/preview', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ url })
+      })
+
+      if (response.ok) {
+        const metadata = await response.json()
+        setMetadataPreview(metadata)
+
+        // Auto-fill title if empty
+        if (metadata.title && !watch('title')) {
+          setValue('title', metadata.title)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching metadata:', error)
+    } finally {
+      setFetchingMetadata(false)
+    }
+  }
+
   const onSubmit = async (data: BookmarkFormData) => {
     setProcessing(true)
 
@@ -80,6 +118,7 @@ export default function BookmarkForm({
         onSuccess: () => {
           setProcessing(false)
           reset()
+          setMetadataPreview(null)
           if (onSuccess) onSuccess()
         },
         onError: (errors) => {
@@ -95,8 +134,20 @@ export default function BookmarkForm({
 
   const handleCancel = () => {
     reset()
+    setMetadataPreview(null)
     if (onCancel) onCancel()
   }
+
+  // Debounced metadata fetching when URL changes
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (watchedUrl && watchedUrl !== editingBookmark?.url) {
+        fetchMetadata(watchedUrl)
+      }
+    }, 1000) // 1 second debounce
+
+    return () => clearTimeout(timeoutId)
+  }, [watchedUrl])
 
   // Handle keyboard shortcuts
   useEffect(() => {
@@ -158,15 +209,52 @@ export default function BookmarkForm({
           <label className="block text-sm font-medium text-[#98989D] mb-2">
             URL *
           </label>
-          <Input
-            {...register('url')}
-            type="url"
-            placeholder="https://example.com"
-            className="w-full px-4 py-3 bg-[#3A3A3C] text-white placeholder-[#98989D] rounded-lg border-none focus:ring-2 focus:ring-[#0A84FF] focus:outline-none transition-all duration-200"
-            disabled={processing}
-          />
+          <div className="relative">
+            <Input
+              {...register('url', { value: '' })}
+              type="url"
+              placeholder="https://example.com"
+              className="w-full px-4 py-3 bg-[#3A3A3C] text-white placeholder-[#98989D] rounded-lg border-none focus:ring-2 focus:ring-[#0A84FF] focus:outline-none transition-all duration-200"
+              disabled={processing}
+            />
+            {fetchingMetadata && (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#0A84FF]"></div>
+              </div>
+            )}
+          </div>
           {errors.url && (
             <p className="text-red-400 text-sm mt-1">{errors.url.message}</p>
+          )}
+
+          {/* Metadata Preview */}
+          {metadataPreview && (
+            <div className="mt-3 p-3 bg-[#2C2C2E] rounded-lg border border-[#3A3A3C]">
+              <p className="text-xs text-[#98989D] mb-2">Preview:</p>
+              <div className="flex gap-3">
+                {metadataPreview.imageUrl && (
+                  <img
+                    src={metadataPreview.imageUrl}
+                    alt="Preview"
+                    className="w-16 h-16 rounded object-cover flex-shrink-0"
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none'
+                    }}
+                  />
+                )}
+                <div className="flex-1 min-w-0">
+                  {metadataPreview.title && (
+                    <h4 className="font-medium text-white text-sm truncate">{metadataPreview.title}</h4>
+                  )}
+                  {metadataPreview.description && (
+                    <p className="text-xs text-[#98989D] mt-1 line-clamp-2">{metadataPreview.description}</p>
+                  )}
+                  {metadataPreview.siteName && (
+                    <p className="text-xs text-[#98989D] mt-1">{metadataPreview.siteName}</p>
+                  )}
+                </div>
+              </div>
+            </div>
           )}
         </div>
 

@@ -15,7 +15,27 @@ export const bookmarkSchema = z.object({
     .trim(),
   isFavorite: z
     .boolean()
-    .default(false)
+    .default(false),
+  description: z
+    .string()
+    .max(1000, 'Description must be less than 1000 characters')
+    .optional()
+    .nullable(),
+  imageUrl: z
+    .string()
+    .url('Invalid image URL')
+    .optional()
+    .nullable(),
+  siteName: z
+    .string()
+    .max(255, 'Site name must be less than 255 characters')
+    .optional()
+    .nullable(),
+  ogType: z
+    .string()
+    .max(100, 'OG type must be less than 100 characters')
+    .optional()
+    .nullable()
 })
 
 // Schema for updating bookmarks (all fields optional except those that should remain required)

@@ -17,6 +17,18 @@ export default class Bookmark extends BaseModel {
   declare isFavorite: boolean
 
   @column()
+  declare description: string | null
+
+  @column()
+  declare imageUrl: string | null
+
+  @column()
+  declare siteName: string | null
+
+  @column()
+  declare ogType: string | null
+
+  @column()
   declare userId: number
 
   @belongsTo(() => User)

@@ -57,6 +57,9 @@ router.group(() => {
 })
   .prefix('/bookmarks').middleware([middleware.auth()])
 
+// API route for bookmark metadata preview
+router.post('/api/bookmarks/preview', [BookmarksController, 'preview']).middleware([middleware.auth()])
+
 // ---------------- Authentication routes for Todo App (JWT-based)
 
 

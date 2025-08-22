@@ -27,6 +27,10 @@ export interface Bookmark {
   title: string;
   url: string;
   isFavorite: boolean;
+  description?: string | null;
+  imageUrl?: string | null;
+  siteName?: string | null;
+  ogType?: string | null;
   createdAt: string;
   updatedAt: string | null;
 }
@@ -80,6 +84,10 @@ export interface BookmarkFormData {
   title: string;
   url: string;
   isFavorite: boolean;
+  description?: string | null;
+  imageUrl?: string | null;
+  siteName?: string | null;
+  ogType?: string | null;
 }
 
 export interface PaginationMeta {

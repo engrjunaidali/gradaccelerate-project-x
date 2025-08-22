@@ -1,6 +1,7 @@
 import { HttpContext } from '@adonisjs/core/http'
 import Bookmark from '#models/bookmark'
 import { asyncHandler } from '../utils/asyncHandler.js'
+import OpenGraphService from '#services/open_graph_service'
 
 export default class BookmarksController {
   /**
@@ -83,10 +84,22 @@ export default class BookmarksController {
     const data = request.only(['title', 'url', 'isFavorite'])
     const user = auth.user!
 
+    const metadata = await OpenGraphService.fetchMetadata(data.url)
+
+    // Use provided title or fallback to Open Graph title
+    const title = data.title || metadata?.title || OpenGraphService.extractDomain(data.url)
+
+    // Create fallback metadata if Open Graph fetch failed
+    const finalMetadata = metadata || OpenGraphService.generateFallbackMetadata(data.url, title)
+
     await Bookmark.create({
-      title: data.title,
+      title,
       url: data.url,
       isFavorite: data.isFavorite ?? false,
+      description: finalMetadata.description,
+      imageUrl: finalMetadata.imageUrl,
+      siteName: finalMetadata.siteName,
+      ogType: finalMetadata.ogType,
       userId: user.id,
     })
 
@@ -105,11 +118,28 @@ export default class BookmarksController {
     }
 
     const data = request.only(['title', 'url', 'isFavorite'])
-    await bookmark.merge({
+
+    // If URL changed, fetch new metadata
+    let metadata = null
+    if (data.url && data.url !== bookmark.url) {
+      metadata = await OpenGraphService.fetchMetadata(data.url)
+    }
+
+    const updateData: any = {
       title: data.title,
       url: data.url,
       isFavorite: data.isFavorite,
-    }).save()
+    }
+
+    // Update metadata if URL changed
+    if (metadata) {
+      updateData.description = metadata.description
+      updateData.imageUrl = metadata.imageUrl
+      updateData.siteName = metadata.siteName
+      updateData.ogType = metadata.ogType
+    }
+
+    await bookmark.merge(updateData).save()
 
     return response.redirect().back()
   })
@@ -134,6 +164,27 @@ export default class BookmarksController {
     session.flash('success', message)
 
     return response.redirect().back()
+  })
+
+  /**
+   * Preview metadata for a URL
+   */
+  preview = asyncHandler(async ({ request, response }: HttpContext) => {
+    const { url } = request.only(['url'])
+
+    if (!url) {
+      return response.badRequest({ message: 'URL is required' })
+    }
+
+    try {
+      const metadata = await OpenGraphService.fetchMetadata(url)
+      const fallbackMetadata = OpenGraphService.generateFallbackMetadata(url)
+
+      return response.json(metadata || fallbackMetadata)
+    } catch (error) {
+      console.error('Error fetching metadata preview:', error)
+      return response.json(OpenGraphService.generateFallbackMetadata(url))
+    }
   })
 
   /**

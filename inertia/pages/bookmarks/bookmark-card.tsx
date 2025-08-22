@@ -47,12 +47,15 @@ export default function BookmarkCard({
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
                 <h3 className="font-semibold text-white truncate">{bookmark.title}</h3>
-                {bookmark.isFavorite ? (
+                {bookmark.isFavorite && (
                   <StarIcon size={16} className="text-[#FF9F0A] fill-current flex-shrink-0" />
-                ) : ''}
+                )}
               </div>
+              {bookmark.description && (
+                <p className="text-sm text-[#98989D] mb-2 line-clamp-2">{bookmark.description}</p>
+              )}
               <div className="flex items-center gap-4 text-sm text-[#98989D]">
-                <span className="truncate">{getDomainFromUrl(bookmark.url)}</span>
+                <span className="truncate">{bookmark.siteName || getDomainFromUrl(bookmark.url)}</span>
                 <span>•</span>
                 <span>{formatDistanceToNow(new Date(bookmark.createdAt), { addSuffix: true })}</span>
               </div>
@@ -110,10 +113,33 @@ export default function BookmarkCard({
       {/* Header */}
       <div className="p-4 border-b border-[#3A3A3C]">
         <div className="flex items-start justify-between gap-3">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="flex items-start gap-3 flex-1 min-w-0">
+            {bookmark.imageUrl ? (
+              <img
+                src={bookmark.imageUrl}
+                alt={bookmark.title}
+                className="w-16 h-16 rounded object-cover flex-shrink-0"
+                onError={(e) => {
+                  e.currentTarget.src = `https://www.google.com/s2/favicons?domain=${bookmark.url}` || '/default-favicon.png'
+                  e.currentTarget.className = 'w-8 h-8 rounded flex-shrink-0'
+                }}
+              />
+            ) : (
+              <img
+                src={`https://www.google.com/s2/favicons?domain=${bookmark.url}` || '/default-favicon.png'}
+                alt=""
+                className="w-8 h-8 rounded flex-shrink-0"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none'
+                }}
+              />
+            )}
             <div className="flex-1 min-w-0">
               <h3 className="font-semibold text-white truncate mb-1">{bookmark.title}</h3>
-              <p className="text-sm text-[#98989D] truncate">{getDomainFromUrl(bookmark.url)}</p>
+              {bookmark.description && (
+                <p className="text-sm text-[#98989D] mb-2 line-clamp-2">{bookmark.description}</p>
+              )}
+              <p className="text-sm text-[#98989D] truncate">{bookmark.siteName || getDomainFromUrl(bookmark.url)}</p>
             </div>
           </div>
           {bookmark.isFavorite ? (
@@ -124,7 +150,24 @@ export default function BookmarkCard({
 
       {/* Content */}
       <div className="p-4">
-        <div className="text-sm text-[#98989D] mb-4 break-all">
+        {bookmark.imageUrl && (
+          <div className="mb-4">
+            <img
+              src={bookmark.imageUrl}
+              alt={bookmark.title}
+              className="w-full h-32 object-cover rounded"
+              onError={(e) => {
+                e.currentTarget.style.display = 'none'
+              }}
+            />
+          </div>
+        )}
+
+        {bookmark.description && (
+          <p className="text-sm text-[#98989D] mb-4 line-clamp-3">{bookmark.description}</p>
+        )}
+
+        <div className="text-sm text-[#98989D] mb-2 break-all">
           {bookmark.url}
         </div>
 

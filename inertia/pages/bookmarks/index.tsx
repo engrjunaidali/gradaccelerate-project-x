@@ -301,7 +301,7 @@ export default function Index() {
             animate={{ opacity: 1, scale: 1 }}
             className="bg-[#2C2C2E] rounded-lg p-6 max-w-sm mx-4"
           >
-            <h3 className="text-lg font-semibold mb-4">Delete Bookmark</h3>
+            <h3 className="text-lg font-semibold mb-4 text-white">Delete Bookmark</h3>
             <p className="text-[#98989D] mb-6">
               Are you sure you want to delete this bookmark? This action cannot be undone.
             </p>
