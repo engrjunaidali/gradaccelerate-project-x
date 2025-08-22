@@ -2,6 +2,7 @@ import { HttpContext } from '@adonisjs/core/http'
 import Bookmark from '#models/bookmark'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import OpenGraphService from '#services/open_graph_service'
+import GeminiService from '#services/gemini_service'
 
 export default class BookmarksController {
   /**
@@ -14,6 +15,7 @@ export default class BookmarksController {
     const sortDirection = request.input('direction', 'desc')
     const searchQuery = request.input('search', '')
     const filterFavorites = request.input('favorites', false)
+    const filterLabel = request.input('label', '')
 
     // Validate sort field
     const allowedSortFields = ['created_at', 'updated_at', 'title']
@@ -38,7 +40,21 @@ export default class BookmarksController {
       query = query.where('is_favorite', true)
     }
 
+    if (filterLabel) {
+      query = query.whereRaw('JSON_CONTAINS(labels, ?)', [`"${filterLabel}"`])
+    }
+
     const bookmarks = await query.paginate(page, perPage)
+
+    // Get all unique labels for filtering
+    const allBookmarks = await Bookmark.query().where('user_id', user.id).select('labels')
+    const allLabels = new Set<string>()
+    allBookmarks.forEach(bookmark => {
+      if (bookmark.labels && Array.isArray(bookmark.labels)) {
+        bookmark.labels.forEach(label => allLabels.add(label))
+      }
+    })
+    const availableLabels = Array.from(allLabels).sort()
 
     return inertia.render('bookmarks/index', {
       bookmarks: {
@@ -57,10 +73,12 @@ export default class BookmarksController {
         },
       },
       user: {
-        id: user.id,
-        email: user.email,
-        fullName: user.fullName,
-      },
+          id: user.id,
+          email: user.email,
+          fullName: user.fullName,
+        },
+      availableLabels,
+      currentLabel: filterLabel,
     })
   })
 
@@ -92,6 +110,20 @@ export default class BookmarksController {
     // Create fallback metadata if Open Graph fetch failed
     const finalMetadata = metadata || OpenGraphService.generateFallbackMetadata(data.url, title)
 
+    // Generate AI labels using Gemini
+    let labels: string[] = []
+    try {
+      labels = await GeminiService.generateLabels({
+        title,
+        description: finalMetadata.description || undefined,
+        siteName: finalMetadata.siteName || undefined,
+        url: data.url
+      })
+    } catch (error) {
+      console.warn('Failed to generate labels with Gemini:', error)
+      // Continue without labels if AI generation fails
+    }
+
     await Bookmark.create({
       title,
       url: data.url,
@@ -100,6 +132,7 @@ export default class BookmarksController {
       imageUrl: finalMetadata.imageUrl,
       siteName: finalMetadata.siteName,
       ogType: finalMetadata.ogType,
+      labels,
       userId: user.id,
     })
 
@@ -137,6 +170,19 @@ export default class BookmarksController {
       updateData.imageUrl = metadata.imageUrl
       updateData.siteName = metadata.siteName
       updateData.ogType = metadata.ogType
+      
+      // Regenerate labels for new URL
+      try {
+        const labels = await GeminiService.generateLabels({
+          title: data.title || bookmark.title,
+          description: metadata.description || undefined,
+          siteName: metadata.siteName || undefined,
+          url: data.url
+        })
+        updateData.labels = labels
+      } catch (error) {
+        console.warn('Failed to regenerate labels with Gemini:', error)
+      }
     }
 
     await bookmark.merge(updateData).save()

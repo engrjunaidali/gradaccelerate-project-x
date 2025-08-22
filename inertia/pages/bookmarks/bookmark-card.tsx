@@ -54,6 +54,23 @@ export default function BookmarkCard({
               {bookmark.description && (
                 <p className="text-sm text-[#98989D] mb-2 line-clamp-2">{bookmark.description}</p>
               )}
+              {bookmark.labels && bookmark.labels.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {bookmark.labels.slice(0, 3).map((label, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-1 text-xs bg-[#0A84FF]/20 text-[#0A84FF] rounded-full"
+                    >
+                      {label}
+                    </span>
+                  ))}
+                  {bookmark.labels.length > 3 && (
+                    <span className="px-2 py-1 text-xs bg-[#3A3A3C] text-[#98989D] rounded-full">
+                      +{bookmark.labels.length - 3}
+                    </span>
+                  )}
+                </div>
+              )}
               <div className="flex items-center gap-4 text-sm text-[#98989D]">
                 <span className="truncate">{bookmark.siteName || getDomainFromUrl(bookmark.url)}</span>
                 <span>•</span>
@@ -139,6 +156,23 @@ export default function BookmarkCard({
               {bookmark.description && (
                 <p className="text-sm text-[#98989D] mb-2 line-clamp-2">{bookmark.description}</p>
               )}
+              {bookmark.labels && bookmark.labels.length > 0 && (
+                <div className="flex flex-wrap gap-1 mb-2">
+                  {bookmark.labels.slice(0, 4).map((label, index) => (
+                    <span
+                      key={index}
+                      className="px-2 py-1 text-xs bg-[#0A84FF]/20 text-[#0A84FF] rounded-full"
+                    >
+                      {label}
+                    </span>
+                  ))}
+                  {bookmark.labels.length > 4 && (
+                    <span className="px-2 py-1 text-xs bg-[#3A3A3C] text-[#98989D] rounded-full">
+                      +{bookmark.labels.length - 4}
+                    </span>
+                  )}
+                </div>
+              )}
               <p className="text-sm text-[#98989D] truncate">{bookmark.siteName || getDomainFromUrl(bookmark.url)}</p>
             </div>
           </div>
@@ -166,7 +200,20 @@ export default function BookmarkCard({
         {bookmark.description && (
           <p className="text-sm text-[#98989D] mb-4 line-clamp-3">{bookmark.description}</p>
         )}
-
+        
+        {bookmark.labels && bookmark.labels.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-4">
+            {bookmark.labels.map((label, index) => (
+              <span
+                key={index}
+                className="px-3 py-1 text-sm bg-[#0A84FF]/20 text-[#0A84FF] rounded-full"
+              >
+                {label}
+              </span>
+            ))}
+          </div>
+        )}
+        
         <div className="text-sm text-[#98989D] mb-2 break-all">
           {bookmark.url}
         </div>

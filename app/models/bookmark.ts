@@ -28,6 +28,12 @@ export default class Bookmark extends BaseModel {
   @column()
   declare ogType: string | null
 
+  @column({
+    prepare: (value: string[]) => JSON.stringify(value),
+    consume: (value: string) => value ? JSON.parse(value) : []
+  })
+  declare labels: string[]
+
   @column()
   declare userId: number
 

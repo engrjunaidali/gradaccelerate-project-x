@@ -35,7 +35,12 @@ export const bookmarkSchema = z.object({
     .string()
     .max(100, 'OG type must be less than 100 characters')
     .optional()
-    .nullable()
+    .nullable(),
+  labels: z
+    .array(z.string().trim().min(1, 'Label cannot be empty'))
+    .max(10, 'Maximum 10 labels allowed')
+    .default([])
+    .optional()
 })
 
 // Schema for updating bookmarks (all fields optional except those that should remain required)

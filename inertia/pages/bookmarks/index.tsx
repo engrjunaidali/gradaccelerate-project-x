@@ -108,6 +108,7 @@ export default function Index() {
             </div>
             <div className="flex items-center gap-3">
               <span className="text-sm text-[#98989D]">Welcome, {user.fullName}</span>
+              <span className="text-sm text-[#98989D]">{user.email}</span>
               <button
                 onClick={handleLogout}
                 className="text-sm text-[#FF453A] hover:text-[#FF6B6B] transition-colors duration-200"
