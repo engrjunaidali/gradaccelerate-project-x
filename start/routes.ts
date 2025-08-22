@@ -9,6 +9,7 @@
 
 const NotesController = () => import('#controllers/notes_controller')
 const TodosController = () => import('#controllers/todos_controller')
+const BookmarksController = () => import('#controllers/bookmarks_controller')
 const AuthController = () => import('#controllers/auth_controller')
 const GoogleAuthController = () => import('#controllers/google_auth_controller')
 const WeatherController = () => import('#controllers/weather_controller')
@@ -43,7 +44,18 @@ router.group(() => {
 
 router.get('/notes/shared/:token', [NotesController, 'showShared'])
 
+// ---------------- Bookmarks routes with session authentication
 
+router.group(() => {
+  router.get('/', [BookmarksController, 'index'])        // GET /bookmarks
+  router.post('/', [BookmarksController, 'store'])       // POST /bookmarks
+  router.get('/:id', [BookmarksController, 'show'])      // GET /bookmarks/:id
+  router.put('/:id', [BookmarksController, 'update'])    // PUT /bookmarks/:id
+  router.patch('/:id', [BookmarksController, 'update'])  // PATCH /bookmarks/:id
+  router.patch('/:id/toggle-favorite', [BookmarksController, 'toggleFavorite'])
+  router.delete('/:id', [BookmarksController, 'destroy']) // DELETE /bookmarks/:id
+})
+  .prefix('/bookmarks').middleware([middleware.auth()])
 
 // ---------------- Authentication routes for Todo App (JWT-based)
 

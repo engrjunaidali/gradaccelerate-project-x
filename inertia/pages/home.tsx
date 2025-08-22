@@ -29,7 +29,7 @@ export default function Home() {
             <WeatherWidget className="w-full max-w-md mb-8" />
 
             {/* Cards Container */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl w-full">
+            <div className="grid grid-cols-2 md:grid-cols-2 gap-8 max-w-4xl w-full">
               {/* Notes Card */}
               <Link href="/notes" className="block">
                 <Card className="bg-[#2C2C2E] p-6 rounded-xl hover:bg-[#3C3C3E] transition-colors duration-200">
@@ -93,6 +93,37 @@ export default function Home() {
                   </div>
                 </Card>
               </Link>
+
+
+              <Link href="/bookmarks" className="block">
+                <Card className="bg-[#2C2C2E] p-6 rounded-xl hover:bg-[#3C3C3E] transition-colors duration-200">
+                  <h2 className="text-2xl font-semibold mb-3 text-white">Bookmarks</h2>
+                  <p className="text-gray-400 mb-4">Manage your bookmarks and thoughts in one place</p>
+                  <div className="flex gap-2 justify-center">
+                    <Button
+                      asChild
+                      variant="secondary"
+                      size="sm"
+                    >
+                      <Link href="/auth/session/login">
+                        Sign In
+                      </Link>
+                    </Button>
+
+
+                    <Button
+                      asChild
+                      variant="secondary"
+                      size="sm"
+                    >
+                      <Link href="/auth/session/signup">
+                        Sign Up
+                      </Link>
+                    </Button>
+                  </div>
+                </Card>
+              </Link>
+
             </div>{/* Cards Container */}
           </div>
         </div>
