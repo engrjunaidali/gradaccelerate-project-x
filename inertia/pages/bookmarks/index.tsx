@@ -39,10 +39,11 @@ interface PageProps {
     success?: string
     error?: string
   }
+  csrfToken: string
 }
 
 export default function Index() {
-  const { bookmarks: bookmarksData, user } = usePage<PageProps>().props
+  const { bookmarks: bookmarksData, user, csrfToken } = usePage<PageProps>().props
 
   // Zustand store
   const {
@@ -76,6 +77,7 @@ export default function Index() {
     }
   }
 
+  console.log(csrfToken);
   return (
     <>
       <Head title="Bookmarks" />
@@ -237,6 +239,7 @@ export default function Index() {
                   onEdit={() => handleBookmarkEdit(bookmark)}
                   onDelete={() => setDeleteConfirm(bookmark.id)}
                   onToggleFavorite={() => handleToggleFavorite(bookmark.id)}
+                  csrfToken={csrfToken}
                 />
               ))}
             </motion.div>

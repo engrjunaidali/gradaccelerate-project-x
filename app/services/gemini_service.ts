@@ -166,4 +166,107 @@ export default class GeminiService {
       return null
     }
   }
+
+  /**
+   * Generate a comprehensive TL;DR summary for an article or bookmark
+   */
+  static async generateTLDR(content: BookmarkContent): Promise<string | null> {
+    try {
+      const requestData = {
+        prompt: this.buildTLDRPrompt(content),
+        max_tokens: 300,
+        temperature: 0.7,
+        model: gemConfig.model || 'gemini-1.5-flash'
+      }
+
+      const response = await fetch('https://api.google.com/gemini/generate', {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${gemConfig.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(requestData)
+      })
+
+      if (!response.ok) {
+        throw new Error(`Gemini API error: ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      return data.text?.trim() || null
+
+    } catch (error) {
+      console.error('Error generating TL;DR with Gemini:', error)
+      return this.generateFallbackTLDR(content)
+    }
+  }
+
+  /**
+   * Build a comprehensive prompt for TL;DR generation
+   */
+  private static buildTLDRPrompt(content: BookmarkContent): string {
+    const parts = []
+
+    parts.push('Create a TL;DR (Too Long; Didn\'t Read) summary for this content:')
+    parts.push('')
+    parts.push(`Title: ${content.title}`)
+
+    if (content.description) {
+      parts.push(`Description: ${content.description}`)
+    }
+
+    if (content.siteName) {
+      parts.push(`Source: ${content.siteName}`)
+    }
+
+    parts.push(`URL: ${content.url}`)
+    parts.push('')
+    parts.push('Requirements:')
+    parts.push('- Provide a concise 2-3 sentence summary')
+    parts.push('- Focus on the main points and key takeaways')
+    parts.push('- Use clear, accessible language')
+    parts.push('- Start with "TL;DR:" followed by the summary')
+    parts.push('- If the content appears to be technical, explain it simply')
+    parts.push('')
+    parts.push('Example format:')
+    parts.push('TL;DR: This article explains how to use React hooks for state management. It covers useState and useEffect with practical examples. The main benefit is cleaner, more readable code compared to class components.')
+
+    return parts.join('\n')
+  }
+
+  /**
+   * Generate a fallback TL;DR when AI generation fails
+   */
+  private static generateFallbackTLDR(content: BookmarkContent): string {
+    const parts = ['TL;DR:']
+
+    if (content.description) {
+      // Use the description as a base for the summary
+      const shortDesc = content.description.length > 150
+        ? content.description.substring(0, 150) + '...'
+        : content.description
+      parts.push(shortDesc)
+    } else {
+      // Generate a basic summary from the title and site
+      parts.push(`This is a ${content.siteName || 'web'} resource about ${content.title.toLowerCase()}.`)
+      parts.push('Visit the link for more detailed information.')
+    }
+
+    return parts.join(' ')
+  }
+
+  /**
+   * Fetch and summarize content from a URL (for future enhancement)
+   */
+  static async fetchAndSummarize(url: string): Promise<string | null> {
+    try {
+      // This is a placeholder for future implementation
+      // Could integrate with web scraping or content extraction APIs
+      console.log(`Future enhancement: Fetch content from ${url} and summarize`)
+      return null
+    } catch (error) {
+      console.error('Error fetching and summarizing content:', error)
+      return null
+    }
+  }
 }

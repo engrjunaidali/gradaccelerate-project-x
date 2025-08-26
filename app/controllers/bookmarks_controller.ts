@@ -57,6 +57,7 @@ export default class BookmarksController {
     const availableLabels = Array.from(allLabels).sort()
 
     return inertia.render('bookmarks/index', {
+      csrfToken: request.csrfToken,
       bookmarks: {
         data: bookmarks.toJSON().data,
         meta: {
@@ -73,10 +74,10 @@ export default class BookmarksController {
         },
       },
       user: {
-          id: user.id,
-          email: user.email,
-          fullName: user.fullName,
-        },
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName,
+      },
       availableLabels,
       currentLabel: filterLabel,
     })
@@ -170,7 +171,7 @@ export default class BookmarksController {
       updateData.imageUrl = metadata.imageUrl
       updateData.siteName = metadata.siteName
       updateData.ogType = metadata.ogType
-      
+
       // Regenerate labels for new URL
       try {
         const labels = await GeminiService.generateLabels({
@@ -246,5 +247,47 @@ export default class BookmarksController {
 
     await bookmark.delete()
     return response.redirect().back()
+  })
+
+  generateTLDR = asyncHandler(async ({ params, response, auth }: HttpContext) => {
+    const user = auth.user!
+    const bookmark = await Bookmark.query().where('id', params.id).where('user_id', user.id).first()
+
+    if (!bookmark) {
+      return response.notFound({ message: 'Bookmark not found' })
+    }
+
+    try {
+      // Generate TL;DR summary using Gemini
+      const summary = await GeminiService.generateTLDR({
+        title: bookmark.title,
+        description: bookmark.description || undefined,
+        siteName: bookmark.siteName || undefined,
+        url: bookmark.url
+      })
+
+      if (summary) {
+        // Save the summary to the bookmark
+        bookmark.summary = summary
+        await bookmark.save()
+
+        return response.json({
+          success: true,
+          summary,
+          message: 'TL;DR generated successfully'
+        })
+      } else {
+        return response.json({
+          success: false,
+          message: 'Failed to generate TL;DR summary'
+        })
+      }
+    } catch (error) {
+      console.error('Error generating TL;DR:', error)
+      return response.status(500).json({
+        success: false,
+        message: 'An error occurred while generating the summary'
+      })
+    }
   })
 }

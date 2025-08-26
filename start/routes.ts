@@ -53,6 +53,7 @@ router.group(() => {
   router.put('/:id', [BookmarksController, 'update'])    // PUT /bookmarks/:id
   router.patch('/:id', [BookmarksController, 'update'])  // PATCH /bookmarks/:id
   router.patch('/:id/toggle-favorite', [BookmarksController, 'toggleFavorite'])
+  router.post('/:id/tldr', [BookmarksController, 'generateTLDR']) // POST /bookmarks/:id/tldr
   router.delete('/:id', [BookmarksController, 'destroy']) // DELETE /bookmarks/:id
 })
   .prefix('/bookmarks').middleware([middleware.auth()])

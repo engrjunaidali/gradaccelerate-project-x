@@ -35,6 +35,9 @@ export default class Bookmark extends BaseModel {
   declare labels: string[]
 
   @column()
+  declare summary: string | null
+
+  @column()
   declare userId: number
 
   @belongsTo(() => User)

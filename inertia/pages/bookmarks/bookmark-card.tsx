@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
-import { EditIcon, StarIcon, ExternalLinkIcon, TrashIcon } from 'lucide-react'
+import { EditIcon, StarIcon, ExternalLinkIcon, TrashIcon, FileTextIcon } from 'lucide-react'
+import { useState } from 'react'
 import type { Bookmark } from '../../stores/storeTypes'
 import { Button } from "../../components/ui.js/button"
 
@@ -10,6 +11,7 @@ interface BookmarkCardProps {
   onEdit: () => void
   onDelete: () => void
   onToggleFavorite: () => void
+  csrfToken: string
 }
 
 export default function BookmarkCard({
@@ -17,10 +19,51 @@ export default function BookmarkCard({
   viewType,
   onEdit,
   onDelete,
-  onToggleFavorite
+  onToggleFavorite,
+  csrfToken
 }: BookmarkCardProps) {
+  const [isGeneratingSummary, setIsGeneratingSummary] = useState(false)
+  const [showSummary, setShowSummary] = useState(false)
+  const [currentSummary, setCurrentSummary] = useState(bookmark.summary)
+
   const handleVisitUrl = () => {
     window.open(bookmark.url, '_blank', 'noopener,noreferrer')
+  }
+
+
+
+  const handleGenerateTLDR = async () => {
+    if (isGeneratingSummary) return
+
+    setIsGeneratingSummary(true)
+    try {
+      console.log('csrfToken', csrfToken);
+      if (!csrfToken) {
+        throw new Error('CSRF token not found')
+      }
+
+      const response = await fetch(`/bookmarks/${bookmark.id}/tldr`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': csrfToken,
+          'Accept': 'application/json'
+        }
+      })
+
+      const data = await response.json()
+      console.log('data', data);
+      if (data.success && data.summary) {
+        setCurrentSummary(data.summary)
+        setShowSummary(true)
+      } else {
+        console.error('Failed to generate TL;DR:', data.message)
+      }
+    } catch (error) {
+      console.error('Error generating TL;DR:', error)
+    } finally {
+      setIsGeneratingSummary(false)
+    }
   }
 
   const getDomainFromUrl = (url: string) => {
@@ -88,6 +131,22 @@ export default function BookmarkCard({
               className="text-[#98989D] hover:text-[#0A84FF] p-2"
             >
               <ExternalLinkIcon size={16} />
+            </Button>
+            <Button
+              onClick={(e) => {
+                e.stopPropagation()
+                if (currentSummary) {
+                  setShowSummary(!showSummary)
+                } else {
+                  handleGenerateTLDR()
+                }
+              }}
+              variant="ghost"
+              size="sm"
+              className={`p-2 ${currentSummary ? 'text-[#34C759]' : 'text-[#98989D] hover:text-[#34C759]'} ${isGeneratingSummary ? 'opacity-50' : ''}`}
+              disabled={isGeneratingSummary}
+            >
+              <FileTextIcon size={16} className={isGeneratingSummary ? 'animate-pulse' : ''} />
             </Button>
             <Button
               onClick={onToggleFavorite}
@@ -178,7 +237,7 @@ export default function BookmarkCard({
           </div>
           {bookmark.isFavorite ? (
             <StarIcon size={20} className="text-[#FF9F0A] fill-current flex-shrink-0" />
-          ):''}
+          ) : ''}
         </div>
       </div>
 
@@ -200,7 +259,7 @@ export default function BookmarkCard({
         {bookmark.description && (
           <p className="text-sm text-[#98989D] mb-4 line-clamp-3">{bookmark.description}</p>
         )}
-        
+
         {bookmark.labels && bookmark.labels.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
             {bookmark.labels.map((label, index) => (
@@ -213,7 +272,7 @@ export default function BookmarkCard({
             ))}
           </div>
         )}
-        
+
         <div className="text-sm text-[#98989D] mb-2 break-all">
           {bookmark.url}
         </div>
@@ -221,6 +280,17 @@ export default function BookmarkCard({
         <div className="text-xs text-[#98989D] mb-4">
           Added {formatDistanceToNow(new Date(bookmark.createdAt), { addSuffix: true })}
         </div>
+
+        {/* TL;DR Summary */}
+        {currentSummary && (
+          <div className="mb-4 p-3 bg-[#1C1C1E] rounded-lg border border-[#34C759]/30">
+            <div className="flex items-center gap-2 mb-2">
+              <FileTextIcon size={14} className="text-[#34C759]" />
+              <span className="text-sm font-medium text-[#34C759]">TL;DR</span>
+            </div>
+            <p className="text-sm text-[#E5E5E7] leading-relaxed">{currentSummary}</p>
+          </div>
+        )}
       </div>
 
       {/* Actions */}
@@ -240,6 +310,23 @@ export default function BookmarkCard({
           </Button>
 
           <div className="flex items-center gap-1">
+            <Button
+              onClick={(e) => {
+                e.stopPropagation()
+                if (currentSummary) {
+                  setShowSummary(!showSummary)
+                } else {
+                  handleGenerateTLDR()
+                }
+              }}
+              variant="ghost"
+              size="sm"
+              className={`p-2 ${currentSummary ? 'text-[#34C759]' : 'text-[#98989D] hover:text-[#34C759]'} ${isGeneratingSummary ? 'opacity-50' : ''}`}
+              disabled={isGeneratingSummary}
+              title={currentSummary ? 'View TL;DR' : 'Generate TL;DR'}
+            >
+              <FileTextIcon size={16} className={isGeneratingSummary ? 'animate-pulse' : ''} />
+            </Button>
             <Button
               onClick={(e) => {
                 e.stopPropagation()

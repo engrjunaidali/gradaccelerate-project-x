@@ -32,6 +32,7 @@ export interface Bookmark {
   siteName?: string | null;
   ogType?: string | null;
   labels?: string[];
+  summary?: string | null;
   createdAt: string;
   updatedAt: string | null;
 }
@@ -90,6 +91,7 @@ export interface BookmarkFormData {
   siteName?: string | null;
   ogType?: string | null;
   labels?: string[];
+  summary?: string | null;
 }
 
 export interface PaginationMeta {
