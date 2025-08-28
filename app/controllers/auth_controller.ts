@@ -32,7 +32,7 @@ export default class AuthController {
       await auth.use('web').login(user)
 
       session.flash('success', 'Account created successfully!')
-      return response.redirect('/notes')
+      return response.redirect('/')
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errorMessage = error.issues.map(err => err.message).join(', ')
@@ -55,7 +55,7 @@ export default class AuthController {
       await auth.use('web').login(user)
 
       session.flash('success', 'Logged in successfully!')
-      return response.redirect('/notes')
+      return response.redirect('/')
     } catch (error) {
       if (error instanceof z.ZodError) {
         const errorMessage = error.issues.map(err => err.message).join(', ')

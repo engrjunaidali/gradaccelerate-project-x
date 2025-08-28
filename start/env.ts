@@ -47,5 +47,12 @@ export default await Env.create(new URL('../', import.meta.url), {
   | Variables for configuring Giphy API
   |----------------------------------------------------------
   */
-  GIPHY_API_KEY: Env.schema.string.optional()
+  GIPHY_API_KEY: Env.schema.string.optional(),
+
+  /*
+  |----------------------------------------------------------
+  | Variables for configuring Google Gemini API
+  |----------------------------------------------------------
+  */
+  GEMINI_API_KEY: Env.schema.string.optional()
 })
