@@ -1,42 +1,45 @@
 import { StateCreator } from 'zustand'
 import { router } from '@inertiajs/react'
 import type {
-  BookmarksSlice,
-  Bookmark,
-  BookmarkFormData,
-  BookmarksData,
-
+  RemindersSlice,
+  Reminder,
+  ReminderFormData,
+  RemindersData,
   SortField,
   SortDirection
 } from './storeTypes'
 
-const initialBookmarkFormData: BookmarkFormData = {
+
+
+const initialReminderFormData: ReminderFormData = {
   title: '',
-  url: '',
-  isFavorite: false
+  description: '',
+  reminderDateTime: '',
+  isEmailNotification: false,
+  isBrowserNotification: true
 }
 
-export const createBookmarksSlice: StateCreator<
-  BookmarksSlice,
+export const createRemindersSlice: StateCreator<
+  RemindersSlice,
   [],
   [],
-  BookmarksSlice
+  RemindersSlice
 > = (set, get) => ({
   // Initial state
   isFormVisible: false,
   viewType: 'grid',
   searchQuery: '',
   sortConfig: {
-    field: 'created_at',
-    direction: 'desc'
+    field: 'reminder_datetime',
+    direction: 'asc'
   },
   deleteConfirm: null,
   isEditing: false,
-  editingBookmarkId: null,
-  filterFavorites: false,
+  editingReminderId: null,
+  filterStatus: 'all',
 
   // Form initial state
-  formData: initialBookmarkFormData,
+  formData: initialReminderFormData,
   processing: false,
   errors: {},
 
@@ -47,76 +50,82 @@ export const createBookmarksSlice: StateCreator<
   setSortConfig: (config) => set({ sortConfig: config }),
   setDeleteConfirm: (id) => set({ deleteConfirm: id }),
   setIsEditing: (editing) => set({ isEditing: editing }),
-  setEditingBookmarkId: (id) => set({ editingBookmarkId: id }),
-  setFilterFavorites: (filter) => set({ filterFavorites: filter }),
+  setEditingReminderId: (id) => set({ editingReminderId: id }),
+  setFilterStatus: (status) => set({ filterStatus: status }),
 
   // Form setters
   setFormData: (data) => set((state) => ({ formData: { ...state.formData, ...data } })),
   setProcessing: (processing) => set({ processing }),
   setErrors: (errors) => set({ errors }),
   resetFormData: () => set({
-    formData: initialBookmarkFormData,
+    formData: initialReminderFormData,
     errors: {}
   }),
 
   // Complex actions
-  handleBookmarkEdit: (bookmark) => {
-    console.log('handleBookmarkEdit called with bookmark:', bookmark);
+  handleReminderEdit: (reminder) => {
+    console.log('handleReminderEdit called with reminder:', reminder);
 
-    const formData: BookmarkFormData = {
-      title: bookmark.title || '',
-      url: bookmark.url || '',
-      isFavorite: Boolean(bookmark.isFavorite)
+    // Format the datetime for the input (datetime-local expects YYYY-MM-DDTHH:mm format)
+    const formattedDateTime = reminder.reminderDateTime ?
+      new Date(reminder.reminderDateTime).toISOString().slice(0, 16) : ''
+
+    const formData: ReminderFormData = {
+      title: reminder.title || '',
+      description: reminder.description || '',
+      reminderDateTime: formattedDateTime,
+      isEmailNotification: Boolean(reminder.isEmailNotification),
+      isBrowserNotification: Boolean(reminder.isBrowserNotification)
     };
 
     set({
       isEditing: true,
-      editingBookmarkId: bookmark.id,
+      editingReminderId: reminder.id,
       isFormVisible: true,
       formData,
       errors: {}
     });
   },
 
-  handleBookmarkDelete: (id) => {
-    router.delete(`/bookmarks/${id}`, {
+  handleReminderDelete: (id) => {
+    router.delete(`/reminders/${id}`, {
       onSuccess: () => {
         set({ deleteConfirm: null });
       }
     });
   },
 
-  handlePageChange: (page, bookmarksData) => {
-    const { searchQuery, sortConfig, filterFavorites } = get();
+  handlePageChange: (page, remindersData) => {
+    const { searchQuery, sortConfig, filterStatus } = get();
     const params = new URLSearchParams({
       page: page.toString(),
       sort: sortConfig.field,
       direction: sortConfig.direction,
       ...(searchQuery && { search: searchQuery }),
-      ...(filterFavorites && { favorites: 'true' })
+      ...(filterStatus !== 'all' && { status: filterStatus })
     });
-    router.get(`/bookmarks?${params.toString()}`);
+    router.get(`/reminders?${params.toString()}`);
   },
 
   handleSearch: (value) => {
     set({ searchQuery: value });
-    const { sortConfig, filterFavorites } = get();
+    const { sortConfig, filterStatus } = get();
     const params = new URLSearchParams({
       page: '1',
       sort: sortConfig.field,
       direction: sortConfig.direction,
       ...(value && { search: value }),
-      ...(filterFavorites && { favorites: 'true' })
+      ...(filterStatus !== 'all' && { status: filterStatus })
     });
-    router.get(`/bookmarks?${params.toString()}`);
+    router.get(`/reminders?${params.toString()}`);
   },
 
-  handleToggleFavorite: (id) => {
-    router.patch(`/bookmarks/${id}/toggle-favorite`);
+  handleMarkComplete: (id) => {
+    router.patch(`/reminders/${id}/mark-complete`);
   },
 
   handleSort: (field, currentPage) => {
-    const { sortConfig, searchQuery, filterFavorites } = get();
+    const { sortConfig, searchQuery, filterStatus } = get();
     const newDirection = sortConfig.field === field && sortConfig.direction === 'desc' ? 'asc' : 'desc';
     const newSortConfig = { field, direction: newDirection };
 
@@ -127,22 +136,22 @@ export const createBookmarksSlice: StateCreator<
       sort: field,
       direction: newDirection,
       ...(searchQuery && { search: searchQuery }),
-      ...(filterFavorites && { favorites: 'true' })
+      ...(filterStatus !== 'all' && { status: filterStatus })
     });
-    router.get(`/bookmarks?${params.toString()}`);
+    router.get(`/reminders?${params.toString()}`);
   },
 
-  handleFilterFavorites: (filter) => {
-    set({ filterFavorites: filter });
+  handleFilterStatus: (status) => {
+    set({ filterStatus: status });
     const { searchQuery, sortConfig } = get();
     const params = new URLSearchParams({
       page: '1',
       sort: sortConfig.field,
       direction: sortConfig.direction,
       ...(searchQuery && { search: searchQuery }),
-      ...(filter && { favorites: 'true' })
+      ...(status !== 'all' && { status })
     });
-    router.get(`/bookmarks?${params.toString()}`);
+    router.get(`/reminders?${params.toString()}`);
   },
 
   handleLogout: () => {
@@ -153,8 +162,8 @@ export const createBookmarksSlice: StateCreator<
     set({
       isFormVisible: false,
       isEditing: false,
-      editingBookmarkId: null,
-      formData: initialBookmarkFormData,
+      editingReminderId: null,
+      formData: initialReminderFormData,
       errors: {},
       processing: false
     });
@@ -164,22 +173,28 @@ export const createBookmarksSlice: StateCreator<
     set({
       isFormVisible: false,
       isEditing: false,
-      editingBookmarkId: null,
-      formData: initialBookmarkFormData,
+      editingReminderId: null,
+      formData: initialReminderFormData,
       errors: {}
     });
   },
 
-  handleSubmit: (e, editingBookmark, onSuccess) => {
+  handleSubmit: (e, editingReminder, onSuccess) => {
     e.preventDefault();
-    const { formData, isEditing, editingBookmarkId } = get();
+    const { formData, isEditing, editingReminderId } = get();
 
     set({ processing: true, errors: {} });
 
-    const url = isEditing && editingBookmarkId ? `/bookmarks/${editingBookmarkId}` : '/bookmarks';
+    // Convert the datetime-local input to ISO string
+    const submitData = {
+      ...formData,
+      reminderDateTime: new Date(formData.reminderDateTime).toISOString()
+    };
+
+    const url = isEditing && editingReminderId ? `/reminders/${editingReminderId}` : '/reminders';
     const method = isEditing ? 'patch' : 'post';
 
-    router[method](url, formData, {
+    router[method](url, submitData, {
       onSuccess: () => {
         set({ processing: false });
         get().resetForm();

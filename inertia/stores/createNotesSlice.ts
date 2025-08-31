@@ -4,13 +4,13 @@ import axios from 'axios'
 import { NoteStatus } from '../../app/enums/NoteStatus.js'
 import type {
   NotesSlice,
-  TodosSlice,
   Note,
   NoteFormData,
   NotesData,
+  GiphyGif,
+
   SortField,
   SortDirection,
-  GiphyGif
 } from './storeTypes'
 
 const initialNoteFormData: NoteFormData = {
@@ -22,7 +22,7 @@ const initialNoteFormData: NoteFormData = {
 }
 
 export const createNotesSlice: StateCreator<
-  NotesSlice & TodosSlice,
+  NotesSlice,
   [],
   [],
   NotesSlice
