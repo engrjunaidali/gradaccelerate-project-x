@@ -3,8 +3,7 @@ import Reminder from '#models/reminder'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { DateTime } from 'luxon'
 import { ReminderStatus } from '../enums/ReminderStatus.js'
-import { createReminderValidator } from '../validators/create_reminder.js'
-
+import { reminderSchema, type UpdateReminderFormData } from '../../inertia/schemas/reminderSchema.js'
 export default class RemindersController {
   /**
    * Display a list of reminders
@@ -85,7 +84,16 @@ export default class RemindersController {
    * Store a new reminder
    */
   store = asyncHandler(async ({ request, response, auth }: HttpContext) => {
-    const payload = await request.validateUsing(createReminderValidator)
+    const result = reminderSchema.safeParse(request.all())
+
+    if (!result.success) {
+      return response.badRequest({
+      message: 'Validation failed',
+      errors: result.error.flatten().fieldErrors
+      })
+    }
+
+    const payload = result.data
     const user = auth.user!
 
     // Parse the reminder date time

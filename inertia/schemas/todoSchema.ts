@@ -53,15 +53,26 @@ export const updateTodoSchema = todoSchema.partial({
   imageUrl: true
 })
 
+// Schema for validating todo ID
+export const todoIdSchema = z.object({
+  id: z
+    .string()
+    .min(1, 'ID is required')
+    .or(z.number().int().positive('ID must be a positive integer'))
+    .transform(val => typeof val === 'string' ? parseInt(val, 10) : val)
+    .refine(val => !isNaN(val), 'ID must be a valid number')
+})
+
+export const TodoImageValidator = z.object({
+  extname: z.string().refine(
+    (ext) => ['jpg', 'jpeg', 'png', 'webp'].includes(ext.toLowerCase()),
+    { message: 'File must be jpg, jpeg, png, or webp' }
+  ),
+  size: z.number().max(10 * 1024 * 1024, { message: 'File size must be less than 10MB' }),
+})
+
 // Type exports
 export type TodoFormData = z.infer<typeof todoSchema>
 export type UpdateTodoFormData = z.infer<typeof updateTodoSchema>
-
-// Validation functions
-export const validateTodo = (data: unknown) => {
-  return todoSchema.safeParse(data)
-}
-
-export const validateUpdateTodo = (data: unknown) => {
-  return updateTodoSchema.safeParse(data)
-}
+export type TodoIdFormData = z.infer<typeof todoIdSchema>
+export type TodoImageFormData = z.infer<typeof TodoImageValidator>
