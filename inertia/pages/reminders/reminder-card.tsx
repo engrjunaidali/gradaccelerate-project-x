@@ -1,9 +1,10 @@
 import { motion } from 'framer-motion'
-import { formatDistanceToNow, format } from 'date-fns'
+import { formatDistanceToNow } from 'date-fns'
 import { EditIcon, CheckCircleIcon, ClockIcon, TrashIcon, BellIcon, MailIcon } from 'lucide-react'
 import type { Reminder } from '../../stores/types/remindersTypes'
 import { Button } from "../../components/ui.js/button"
 import { ReminderStatusColors } from "../../constants/ReminderStatusColors"
+import { formatReminderDateTime, isReminderOverdue } from '../../utils/reminder-utils.js'
 interface ReminderCardProps {
   reminder: Reminder
   viewType: 'grid' | 'list'
@@ -26,25 +27,8 @@ export default function ReminderCard({
     }
   }
 
-  const formatReminderDateTime = (dateTime: string) => {
-    const date = new Date(dateTime)
-    const now = new Date()
-    const isToday = date.toDateString() === now.toDateString()
-
-    if (isToday) {
-      return `Today at ${format(date, 'HH:mm')}`
-    }
-    return format(date, 'MMM dd, yyyy HH:mm')
-  }
-
-  const isOverdue = (dateTime: string, status: string) => {
-    if (status === 'completed') return false
-    return new Date(dateTime) < new Date()
-  }
-
-
   const StatusIcon = getStatusIcon(reminder.status)
-  const overdue = isOverdue(reminder.reminderDateTime, reminder.status)
+  const overdue = isReminderOverdue(reminder.reminderDateTime, reminder.status)
 
   if (viewType === 'list') {
     return (
@@ -52,9 +36,8 @@ export default function ReminderCard({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         whileHover={{ y: -2 }}
-        className={`bg-[#2C2C2E] rounded-lg p-4 border transition-all duration-200 ${
-          overdue ? 'border-[#FF453A] hover:border-[#FF6B6B]' : 'border-[#3A3A3C] hover:border-[#0A84FF]'
-        }`}
+        className={`bg-[#2C2C2E] rounded-lg p-4 border transition-all duration-200 ${overdue ? 'border-[#FF453A] hover:border-[#FF6B6B]' : 'border-[#3A3A3C] hover:border-[#0A84FF]'
+          }`}
       >
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4 flex-1 min-w-0">
@@ -83,9 +66,16 @@ export default function ReminderCard({
                 </span>
                 <span>•</span>
                 <span className="flex items-center gap-1">
-                  {reminder.isEmailNotification && <MailIcon size={12} />}
-                  {reminder.isBrowserNotification && <BellIcon size={12} />}
-                  {!reminder.isEmailNotification && !reminder.isBrowserNotification && 'No notifications'}
+
+                    <div className="flex items-center gap-1">
+                      <MailIcon size={14} className={reminder.isEmailNotification ? 'text-[#0A84FF]' : 'text-[#98989D]'} />
+                      <span>Email</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <BellIcon size={14} className={reminder.isBrowserNotification ? 'text-[#34C759]' : 'text-[#98989D]'} />
+                      <span>Browser</span>
+                    </div>
+
                 </span>
                 <span>•</span>
                 <span>Created {formatDistanceToNow(new Date(reminder.createdAt), { addSuffix: true })}</span>
@@ -122,9 +112,8 @@ export default function ReminderCard({
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -4, scale: 1.02 }}
-      className={`bg-[#2C2C2E] rounded-lg border transition-all duration-200 overflow-hidden group ${
-        overdue ? 'border-[#FF453A] hover:border-[#FF6B6B]' : 'border-[#3A3A3C] hover:border-[#0A84FF]'
-      }`}
+      className={`bg-[#2C2C2E] rounded-lg border transition-all duration-200 overflow-hidden group ${overdue ? 'border-[#FF453A] hover:border-[#FF6B6B]' : 'border-[#3A3A3C] hover:border-[#0A84FF]'
+        }`}
     >
       {/* Header */}
       <div className="p-4 border-b border-[#3A3A3C]">
@@ -182,11 +171,10 @@ export default function ReminderCard({
       {/* Actions */}
       <div className="px-4 pb-4">
         <div className="flex items-center justify-between">
-          <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-            reminder.status === 'completed' ? 'bg-[#34C759]/20 text-[#34C759]' :
-            reminder.status === 'cancelled' ? 'bg-[#FF453A]/20 text-[#FF453A]' :
-            'bg-[#FF9F0A]/20 text-[#FF9F0A]'
-          }`}>
+          <div className={`px-3 py-1 rounded-full text-sm font-medium ${reminder.status === 'completed' ? 'bg-[#34C759]/20 text-[#34C759]' :
+              reminder.status === 'cancelled' ? 'bg-[#FF453A]/20 text-[#FF453A]' :
+                'bg-[#FF9F0A]/20 text-[#FF9F0A]'
+            }`}>
             {reminder.status.charAt(0).toUpperCase() + reminder.status.slice(1)}
           </div>
 

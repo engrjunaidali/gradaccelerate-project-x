@@ -1,12 +1,12 @@
 import { Head, Link, usePage } from '@inertiajs/react'
-import { format } from 'date-fns'
-import WeatherWidget from '../components/WeatherWidget'
+import WeatherWidget from '../components/WeatherWidget.js'
 import { Button } from "../../inertia/components/ui.js/button"
 import { Card, CardContent, CardHeader, CardTitle } from "../../inertia/components/ui.js/card"
 import { BellIcon, CalendarIcon, ClockIcon, UserIcon, LogOutIcon } from 'lucide-react'
-import { PageProps } from '@inertiajs/core'
-import { ReminderStatusColors } from "../constants/ReminderStatusColors"
+import { ReminderStatusColors } from "../constants/ReminderStatusColors.js"
 import { MailIcon } from 'lucide-react'
+import ReminderNotification from '../components/ReminderNotification.js'
+import { formatReminderDateTime } from '../utils/reminder-utils.js'
 
 
 interface User {
@@ -24,10 +24,11 @@ interface Reminder {
   isBrowserNotification: boolean
 }
 
-interface HomeProps extends PageProps {
+interface HomeProps {
   user?: User
   upcomingReminders?: Reminder[]
-
+  upcomingRemindersCount?: number
+  [key: string]: any
 }
 
 export default function Home() {
@@ -37,8 +38,12 @@ export default function Home() {
   return (
     <>
       <Head title="Race Track" />
+
+      {/* Add notification component for logged-in users */}
+      {user && <ReminderNotification userId={user.id} />}
+
       <div className="min-h-screen bg-[#1C1C1E] text-white">
-        <div className="max-w-6xl mx-auto p-6">
+        <div className="max-w-6xl mx-auto pb-6 px-6">
           <div className="flex flex-col gap-8">
 
             {/* Header */}
@@ -129,7 +134,7 @@ export default function Home() {
                                   <div className="flex items-center gap-4 my-2 text-sm text-[#98989D]">
                                     <div className="flex items-center gap-1">
                                       <ClockIcon size={14} />
-                                      <span>{format(new Date(reminder.reminderDateTime), 'MMM dd, yyyy HH:mm')}</span>
+                                      <span>{formatReminderDateTime(reminder.reminderDateTime)}</span>
                                     </div>
 
                                     <div className="flex items-center gap-1">

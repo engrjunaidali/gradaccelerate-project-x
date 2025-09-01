@@ -3,7 +3,8 @@ import Reminder from '#models/reminder'
 import { asyncHandler } from '../utils/asyncHandler.js'
 import { DateTime } from 'luxon'
 import { ReminderStatus } from '../enums/ReminderStatus.js'
-import { reminderSchema, type UpdateReminderFormData } from '../../inertia/schemas/reminderSchema.js'
+import { reminderSchema } from '../../inertia/schemas/reminderSchema.js'
+import ReminderNotificationService from '#services/reminder_notification_service'
 export default class RemindersController {
   /**
    * Display a list of reminders
@@ -88,8 +89,8 @@ export default class RemindersController {
 
     if (!result.success) {
       return response.badRequest({
-      message: 'Validation failed',
-      errors: result.error.flatten().fieldErrors
+        message: 'Validation failed',
+        errors: result.error.flatten().fieldErrors
       })
     }
 
@@ -190,6 +191,64 @@ export default class RemindersController {
 
     await reminder.delete()
     return response.redirect().back()
+  })
+
+  /**
+   * Send a test notification
+   */
+  testNotification = asyncHandler(async ({ response, auth }: HttpContext) => {
+    const user = auth.user!
+
+    try {
+      await ReminderNotificationService.sendTestNotification(user.id)
+      return response.json({ success: true, message: 'Test notification sent!' })
+    } catch (error) {
+      return response.badRequest({ success: false, message: 'Failed to send test notification' })
+    }
+  })
+
+  /**
+   * Manually check for due reminders
+   */
+  checkDueReminders = asyncHandler(async ({ response }: HttpContext) => {
+    try {
+      const count = await ReminderNotificationService.checkAndSendNotifications()
+      return response.json({
+        success: true,
+        message: `Checked for due reminders. Found ${count} due reminder(s).`,
+        count
+      })
+    } catch (error) {
+      return response.badRequest({ success: false, message: 'Failed to check due reminders' })
+    }
+  })
+
+  /**
+   * Create a test reminder that's due now (for testing purposes)
+   */
+  createTestReminder = asyncHandler(async ({ response, auth }: HttpContext) => {
+    const user = auth.user!
+
+    try {
+      // Create a reminder that's due right now
+      const testReminder = await Reminder.create({
+        title: 'Test Reminder',
+        description: 'This is a test reminder created for notification testing.',
+        reminderDateTime: DateTime.now().plus({ minutes: 1 }),
+        isEmailNotification: false,
+        isBrowserNotification: true,
+        status: ReminderStatus.PENDING,
+        userId: user.id,
+      })
+
+      return response.json({
+        success: true,
+        message: 'Test reminder created! It should trigger a notification.',
+        reminder: testReminder
+      })
+    } catch (error) {
+      return response.badRequest({ success: false, message: 'Failed to create test reminder' })
+    }
   })
 
 

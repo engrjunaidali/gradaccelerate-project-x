@@ -1,21 +1,18 @@
 import { HttpContext } from '@adonisjs/core/http'
-import Reminder from '#models/reminder'
-import { DateTime } from 'luxon'
+import ReminderNotificationService from '#services/reminder_notification_service'
 
 export default class HomeController {
   async index({ inertia, auth }: HttpContext) {
-
-
     const user = auth.user!
     let upcomingReminders: any[] = []
+    let upcomingRemindersCount = 0
 
     if (auth.isAuthenticated) {
-      upcomingReminders = await Reminder.query()
-        .where('user_id', user.id)  // Filter by user ID
-        .where('status', 'pending')
-        .where('reminder_datetime', '>=', DateTime.now().toSQL())  // Only future reminders
-        .orderBy('reminder_datetime', 'asc')
-        .limit(5)
+      // Get upcoming reminders (next 24 hours)
+      upcomingReminders = await ReminderNotificationService.getUpcomingReminders(user.id)
+
+      // Get count of pending reminders
+      upcomingRemindersCount = await ReminderNotificationService.getUpcomingRemindersCount(user.id)
     }
 
     return inertia.render('home', {
@@ -24,7 +21,8 @@ export default class HomeController {
         email: user.email,
         fullName: user.fullName,
       } : null,
-      upcomingReminders: upcomingReminders
+      upcomingReminders: upcomingReminders,
+      upcomingRemindersCount: upcomingRemindersCount
     })
   }
 }

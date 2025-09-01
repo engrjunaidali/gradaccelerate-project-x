@@ -13,6 +13,7 @@ import {
 import useAppStore from '../../stores/store'
 import ReminderCard from './reminder-card.js'
 import ReminderForm from './reminder-form.js'
+import ReminderNotification from '../../components/ReminderNotification.js'
 import type {
   Reminder,
   RemindersData,
@@ -78,6 +79,7 @@ export default function Index() {
   return (
     <>
       <Head title="Reminders" />
+      <ReminderNotification userId={user.id} />
       <div className="min-h-screen bg-[#1C1C1E] text-white">
         {/* Header */}
         <div className="bg-[#2C2C2E] border-b border-[#3A3A3C] px-6 py-4">
@@ -127,6 +129,68 @@ export default function Index() {
               >
                 <PlusIcon size={16} />
                 {isFormVisible && (isEditing || editingReminderId) ? 'Cancel' : 'Add Reminder'}
+              </button>
+
+              {/* Test Notification Button */}
+              <button
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/reminders/test-notification', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                      },
+                    })
+                    const data = await response.json()
+                    if (!data.success) {
+                      alert('Failed to send test notification')
+                    }
+                  } catch (error) {
+                    alert('Error sending test notification')
+                  }
+                }}
+                className="flex items-center gap-2 bg-[#FF9F0A] hover:bg-[#FF8F0A] text-white px-4 py-2 rounded-lg transition-colors duration-200"
+              >
+                🔔 Test Notification
+              </button>
+
+              {/* Create Test Reminder Button */}
+              <button
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/reminders/create-test-reminder', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                      },
+                    })
+                    const data = await response.json()
+                    if (data.success) {
+                      // alert(data.message)
+                      // Now check for due reminders
+                      setTimeout(async () => {
+                        const checkResponse = await fetch('/reminders/check-due', {
+                          method: 'POST',
+                          headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                          },
+                        })
+                        const checkData = await checkResponse.json()
+                        console.log('Check result:', checkData)
+                      }, 1000)
+                    } else {
+                      alert('Failed to create test reminder')
+                    }
+                  } catch (error) {
+                    alert('Error creating test reminder')
+                  }
+                }}
+                className="flex items-center gap-2 bg-[#34C759] hover:bg-[#30B351] text-white px-4 py-2 rounded-lg transition-colors duration-200"
+              >
+                🧪 Create Test Reminder & Check
               </button>
 
               {/* View Toggle */}
