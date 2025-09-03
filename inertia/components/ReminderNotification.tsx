@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { getPusherInstance } from '../lib/pusher.js'
+import { BrowserNotificationService } from '../services/browser-notification-service.js'
 import type { Channel } from 'pusher-js'
 
 interface ReminderNotification {
@@ -29,48 +30,44 @@ export default function ReminderNotificationComponent({ userId }: ReminderNotifi
     const channelName = `user-${userId}-reminders`
     const channel: Channel = pusher.subscribe(channelName)
 
+    // Initialize browser notifications
+    BrowserNotificationService.initializeNotifications()
+
     // Listen for reminder due events
-    channel.bind('reminder-due', (data: ReminderNotification) => {
+    channel.bind('reminder-due', async (data: ReminderNotification) => {
       console.log('Received reminder notification:', data)
 
+      // Add to in-app notifications
       setNotifications(prev => [...prev, data])
       setIsVisible(true)
 
-      // Show browser notification if permission is granted
-      if (Notification.permission === 'granted') {
-        new Notification(data.title, {
-          body: data.description || data.message,
-          icon: '/favicon.ico',
-          tag: `reminder-${data.id}`,
-        })
-      }
+      // Show browser notification
+      await BrowserNotificationService.showReminderNotification(
+        data.title,
+        data.description || data.message,
+        data.id
+      )
 
-      // Auto-hide after 10 seconds
+      // Auto-hide in-app notification after 10 seconds
       setTimeout(() => {
         setNotifications(prev => prev.filter(n => n.id !== data.id))
       }, 10000)
     })
 
     // Listen for test notifications
-    channel.bind('test-notification', (data: TestNotification) => {
+    channel.bind('test-notification', async (data: TestNotification) => {
       console.log('Received test notification:', data)
 
-      // Show as alert for test notifications
+      // Show as alert for test notifications (for debugging)
       alert(`Test Notification: ${data.message}`)
 
-      // Also show browser notification if permission is granted
-      if (Notification.permission === 'granted') {
-        new Notification('Test Notification', {
-          body: data.message,
-          icon: '/favicon.ico',
-        })
-      }
+      // Show browser notification
+      await BrowserNotificationService.showNotification({
+        title: '🧪 Test Notification',
+        body: data.message,
+        tag: 'test-notification'
+      })
     })
-
-    // Request notification permission on mount
-    if (Notification.permission === 'default') {
-      Notification.requestPermission()
-    }
 
     return () => {
       channel.unbind_all()
