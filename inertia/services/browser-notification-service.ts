@@ -86,7 +86,7 @@ export class BrowserNotificationService {
       notification.onclick = () => {
         window.focus()
         notification.close()
-        
+
         // If there's custom data, handle it
         if (options.data && options.data.url) {
           window.location.href = options.data.url

@@ -155,6 +155,32 @@ export default function Index() {
                 🔔 Test Notification
               </button>
 
+              {/* Test Email Button */}
+              <button
+                onClick={async () => {
+                  try {
+                    const response = await fetch('/reminders/test-email', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': csrfToken,
+                      },
+                    })
+                    const data = await response.json()
+                    if (data.success) {
+                      alert(`✅ ${data.message}`)
+                    } else {
+                      alert(`❌ ${data.message}`)
+                    }
+                  } catch (error) {
+                    alert('❌ Error sending test email')
+                  }
+                }}
+                className="flex items-center gap-2 bg-[#0A84FF] hover:bg-[#0074FF] text-white px-4 py-2 rounded-lg transition-colors duration-200"
+              >
+                📧 Test Email
+              </button>
+
               {/* Create Test Reminder Button */}
               <button
                 onClick={async () => {
@@ -296,7 +322,6 @@ export default function Index() {
                   viewType={viewType}
                   onEdit={() => handleReminderEdit(reminder)}
                   onDelete={() => setDeleteConfirm(reminder.id)}
-                  csrfToken={csrfToken}
                 />
               ))}
             </motion.div>

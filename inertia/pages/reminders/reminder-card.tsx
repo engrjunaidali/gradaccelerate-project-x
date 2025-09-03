@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion'
 import { formatDistanceToNow } from 'date-fns'
-import { EditIcon, CheckCircleIcon, ClockIcon, TrashIcon, BellIcon, MailIcon } from 'lucide-react'
+import { EditIcon, CheckCircleIcon, ClockIcon, TrashIcon, BellIcon, MailIcon, TestTubeIcon } from 'lucide-react'
 import type { Reminder } from '../../stores/types/remindersTypes'
 import { Button } from "../../components/ui.js/button"
 import { ReminderStatusColors } from "../../constants/ReminderStatusColors"
 import { formatReminderDateTime, isReminderOverdue } from '../../utils/reminder-utils.js'
+import axios from 'axios'
+import { useState } from 'react'
 interface ReminderCardProps {
   reminder: Reminder
   viewType: 'grid' | 'list'
@@ -18,6 +20,36 @@ export default function ReminderCard({
   onEdit,
   onDelete,
 }: ReminderCardProps) {
+  const [isTestingEmail, setIsTestingEmail] = useState(false)
+
+  const handleTestEmail = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    setIsTestingEmail(true)
+
+    try {
+      // Send test email with this specific reminder's details
+      const response = await axios.post('/reminders/create-test-reminder-email', {
+        title: `📧 Test: ${reminder.title}`,
+        description: reminder.description || 'This is a test email notification for this reminder.',
+        reminderDateTime: new Date(Date.now() + 60000).toISOString(), // 1 minute from now
+      }, {
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+        }
+      })
+
+      if (response.data.success) {
+        alert(`✅ Test email reminder created! You should receive an email notification in about 1 minute with the details of "${reminder.title}".`)
+      } else {
+        alert(`❌ ${response.data.message}`)
+      }
+    } catch (error) {
+      console.error('Error creating test email reminder:', error)
+      alert('❌ Failed to create test email reminder')
+    } finally {
+      setIsTestingEmail(false)
+    }
+  }
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -85,6 +117,18 @@ export default function ReminderCard({
 
           {/* Actions */}
           <div className="flex items-center gap-2 flex-shrink-0">
+            {reminder.isEmailNotification && (
+              <Button
+                onClick={handleTestEmail}
+                disabled={isTestingEmail}
+                variant="ghost"
+                size="sm"
+                className="text-[#98989D] hover:text-[#0A84FF] p-2"
+                title="Test Email Notification"
+              >
+                <TestTubeIcon size={16} />
+              </Button>
+            )}
             <Button
               onClick={onEdit}
               variant="ghost"
@@ -179,6 +223,18 @@ export default function ReminderCard({
           </div>
 
           <div className="flex items-center gap-1">
+            {reminder.isEmailNotification && (
+              <Button
+                onClick={handleTestEmail}
+                disabled={isTestingEmail}
+                variant="ghost"
+                size="sm"
+                className="text-[#98989D] hover:text-[#0A84FF] p-2"
+                title="Test Email Notification"
+              >
+                <MailIcon size={16} />
+              </Button>
+            )}
             <Button
               onClick={(e) => {
                 e.stopPropagation()

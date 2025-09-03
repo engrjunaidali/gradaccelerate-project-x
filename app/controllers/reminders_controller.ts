@@ -5,6 +5,7 @@ import { DateTime } from 'luxon'
 import { ReminderStatus } from '../enums/ReminderStatus.js'
 import { reminderSchema } from '../../inertia/schemas/reminderSchema.js'
 import ReminderNotificationService from '#services/reminder_notification_service'
+import { EmailService } from '#services/email_service'
 export default class RemindersController {
   /**
    * Display a list of reminders
@@ -248,6 +249,73 @@ export default class RemindersController {
       })
     } catch (error) {
       return response.badRequest({ success: false, message: 'Failed to create test reminder' })
+    }
+  })
+
+  /**
+   * Send a test email notification
+   */
+  testEmail = asyncHandler(async ({ response, auth }: HttpContext) => {
+    const user = auth.user!
+
+    try {
+      const success = await EmailService.sendTestEmail(
+        user.email,
+        `🧪 Test Email from ${process.env.APP_NAME || 'GradAccelerate'}`
+      )
+
+      if (success) {
+        return response.json({
+          success: true,
+          message: `Test email sent successfully to ${user.email}!`,
+          email: user.email
+        })
+      } else {
+        return response.badRequest({
+          success: false,
+          message: 'Failed to send test email. Check email configuration.'
+        })
+      }
+    } catch (error) {
+      return response.badRequest({
+        success: false,
+        message: 'Failed to send test email',
+        error: error.message
+      })
+    }
+  })
+
+  /**
+   * Create a test reminder with email notification enabled
+   */
+  createTestReminderWithEmail = asyncHandler(async ({ request, response, auth }: HttpContext) => {
+    const user = auth.user!
+    const { title, description, reminderDateTime } = request.only(['title', 'description', 'reminderDateTime'])
+
+    try {
+      // Use custom data if provided, otherwise use defaults
+      const reminderTitle = title || '📧 Test Email Reminder'
+      const reminderDesc = description || 'This is a test reminder created to test email notifications.'
+      const reminderTime = reminderDateTime ? DateTime.fromISO(reminderDateTime) : DateTime.now().plus({ minutes: 1 })
+
+      // Create a reminder that's due in specified time with email notification enabled
+      const testReminder = await Reminder.create({
+        title: reminderTitle,
+        description: reminderDesc,
+        reminderDateTime: reminderTime,
+        isEmailNotification: true,
+        isBrowserNotification: true,
+        status: ReminderStatus.PENDING,
+        userId: user.id,
+      })
+
+      return response.json({
+        success: true,
+        message: 'Test reminder with email notification created! You should receive both browser and email notifications.',
+        reminder: testReminder
+      })
+    } catch (error) {
+      return response.badRequest({ success: false, message: 'Failed to create test email reminder' })
     }
   })
 

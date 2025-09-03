@@ -1,7 +1,9 @@
 import { DateTime } from 'luxon'
 import Reminder from '#models/reminder'
 import PusherService from './pusher_service.js'
+import { EmailService } from './email_service.js'
 import { ReminderStatus } from '../enums/ReminderStatus.js'
+import { formatReminderDateTime } from '../../inertia/utils/reminder-utils.js'
 
 export default class ReminderNotificationService {
   /**
@@ -46,19 +48,28 @@ export default class ReminderNotificationService {
         await PusherService.sendReminderNotification(user, reminder)
       }
 
-      // Send email notification if enabled (you can implement this later)
+      // Send email notification if enabled
       if (reminder.isEmailNotification) {
-        // TODO: Implement email notification
-        console.log(`Email notification needed for reminder ${reminder.id}`)
+        console.log(`📧 Sending email notification for reminder ${reminder.id}`)
+
+        const formattedDateTime = formatReminderDateTime(reminder.reminderDateTime.toString())
+
+        await EmailService.sendReminderNotification(
+          user.email,
+          user.fullName || 'User',
+          reminder.title,
+          reminder.description,
+          formattedDateTime
+        )
       }
 
       // Optional: Mark reminder as completed or create a "notified" status
       // For now, we'll keep it as pending so users can manually mark it complete
 
-      console.log(`Processed notification for reminder ${reminder.id} - ${reminder.title}`)
+      console.log(`✅ Processed notification for reminder ${reminder.id} - ${reminder.title}`)
 
     } catch (error) {
-      console.error(`Error processing reminder notification ${reminder.id}:`, error)
+      console.error(`❌ Error processing reminder notification ${reminder.id}:`, error)
     }
   }
 

@@ -75,6 +75,8 @@ router.group(() => {
   router.post('/test-notification', [RemindersController, 'testNotification']) // POST /reminders/test-notification
   router.post('/check-due', [RemindersController, 'checkDueReminders']) // POST /reminders/check-due
   router.post('/create-test-reminder', [RemindersController, 'createTestReminder']) // POST /reminders/create-test-reminder
+  router.post('/test-email', [RemindersController, 'testEmail']) // POST /reminders/test-email
+  router.post('/create-test-reminder-email', [RemindersController, 'createTestReminderWithEmail']) // POST /reminders/create-test-reminder-email
 })
   .prefix('/reminders').middleware([middleware.auth()])
 
