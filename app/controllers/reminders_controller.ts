@@ -285,39 +285,5 @@ export default class RemindersController {
     }
   })
 
-  /**
-   * Create a test reminder with email notification enabled
-   */
-  createTestReminderWithEmail = asyncHandler(async ({ request, response, auth }: HttpContext) => {
-    const user = auth.user!
-    const { title, description, reminderDateTime } = request.only(['title', 'description', 'reminderDateTime'])
-
-    try {
-      // Use custom data if provided, otherwise use defaults
-      const reminderTitle = title || '📧 Test Email Reminder'
-      const reminderDesc = description || 'This is a test reminder created to test email notifications.'
-      const reminderTime = reminderDateTime ? DateTime.fromISO(reminderDateTime) : DateTime.now().plus({ minutes: 1 })
-
-      // Create a reminder that's due in specified time with email notification enabled
-      const testReminder = await Reminder.create({
-        title: reminderTitle,
-        description: reminderDesc,
-        reminderDateTime: reminderTime,
-        isEmailNotification: true,
-        isBrowserNotification: true,
-        status: ReminderStatus.PENDING,
-        userId: user.id,
-      })
-
-      return response.json({
-        success: true,
-        message: 'Test reminder with email notification created! You should receive both browser and email notifications.',
-        reminder: testReminder
-      })
-    } catch (error) {
-      return response.badRequest({ success: false, message: 'Failed to create test email reminder' })
-    }
-  })
-
 
 }
