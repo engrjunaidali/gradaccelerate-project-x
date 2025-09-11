@@ -89,6 +89,7 @@
     "@inertiajs/react": "^2.0.5",
     "@radix-ui/react-select": "^2.2.5",
     "@radix-ui/react-slot": "^1.2.3",
+    "@sentry/react": "^10.11.0",
     "@tailwindcss/vite": "^4.1.11",
     "@vinejs/vine": "^3.0.0",
     "axios": "^1.10.0",
