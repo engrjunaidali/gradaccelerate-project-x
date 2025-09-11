@@ -3,7 +3,6 @@ import { api } from '../lib/TodoAuth'
 import { TodoStatus } from '../../app/enums/TodoStatus'
 import { TodoPriority } from '../../app/enums/TodoPriority'
 import type {
-  NotesSlice,
   TodosSlice,
   Todo,
   TodoFormData
@@ -19,7 +18,7 @@ const initialTodoFormData: TodoFormData = {
 }
 
 export const createTodosSlice: StateCreator<
-  NotesSlice & TodosSlice,
+  TodosSlice,
   [],
   [],
   TodosSlice

@@ -10,15 +10,17 @@
 const NotesController = () => import('#controllers/notes_controller')
 const TodosController = () => import('#controllers/todos_controller')
 const BookmarksController = () => import('#controllers/bookmarks_controller')
+const RemindersController = () => import('#controllers/reminders_controller')
 const AuthController = () => import('#controllers/auth_controller')
 const GoogleAuthController = () => import('#controllers/google_auth_controller')
 const WeatherController = () => import('#controllers/weather_controller')
 const GiphyController = () => import('#controllers/giphy_controller')
+const HomeController = () => import('#controllers/home_controller')
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
 
 
-router.get('/', ({ inertia }) => inertia.render('home'))
+router.get('/', [HomeController, 'index']).middleware([middleware.auth()])
 
 // ---------------- Notes routes with session authentication
 
@@ -60,6 +62,22 @@ router.group(() => {
 
 // API route for bookmark metadata preview
 router.post('/api/bookmarks/preview', [BookmarksController, 'preview']).middleware([middleware.auth()])
+
+// ---------------- Reminders routes with session authentication
+
+router.group(() => {
+  router.get('/', [RemindersController, 'index'])        // GET /reminders
+  router.post('/', [RemindersController, 'store'])       // POST /reminders
+  router.get('/:id', [RemindersController, 'show'])      // GET /reminders/:id
+  router.put('/:id', [RemindersController, 'update'])    // PUT /reminders/:id
+  router.patch('/:id', [RemindersController, 'update'])  // PATCH /reminders/:id
+  router.delete('/:id', [RemindersController, 'destroy']) // DELETE /reminders/:id
+  router.post('/test-notification', [RemindersController, 'testNotification']) // POST /reminders/test-notification
+  router.post('/check-due', [RemindersController, 'checkDueReminders']) // POST /reminders/check-due
+  router.post('/create-test-reminder', [RemindersController, 'createTestReminder']) // POST /reminders/create-test-reminder
+  router.post('/test-email', [RemindersController, 'testEmail']) // POST /reminders/test-email
+})
+  .prefix('/reminders').middleware([middleware.auth()])
 
 // ---------------- Authentication routes for Todo App (JWT-based)
 

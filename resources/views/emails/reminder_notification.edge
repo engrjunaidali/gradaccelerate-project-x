@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reminder Notification - {{ appName }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 300;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .reminder-card {
+            background-color: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+        .reminder-title {
+            font-size: 22px;
+            font-weight: 600;
+            color: #333;
+            margin: 0 0 10px 0;
+        }
+        .reminder-time {
+            font-size: 16px;
+            color: #666;
+            background-color: #e9ecef;
+            padding: 8px 12px;
+            border-radius: 20px;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        .reminder-description {
+            font-size: 16px;
+            color: #555;
+            margin: 15px 0;
+            line-height: 1.5;
+        }
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: 500;
+            margin: 20px 0;
+            transition: transform 0.2s;
+        }
+        .cta-button:hover {
+            transform: translateY(-2px);
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+        }
+        .footer a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        .emoji {
+            font-size: 24px;
+            margin-right: 10px;
+        }
+        @media (max-width: 600px) {
+            .container {
+                border-radius: 0;
+                margin: 0;
+            }
+            .header, .content, .footer {
+                padding: 20px;
+            }
+            .reminder-title {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><span class="emoji">⏰</span>Reminder Alert</h1>
+            <p>Hi {{ userFirstName }}! You have a reminder that's due now.</p>
+        </div>
+
+        <div class="content">
+            <div class="reminder-card">
+                <div class="reminder-title">{{ reminderTitle }}</div>
+
+                <div class="reminder-time">
+                    <strong>📅 Due:</strong> {{ reminderDateTime }}
+                </div>
+
+                @if(reminderDescription)
+                <div class="reminder-description">
+                    <strong>📝 Details:</strong><br>
+                    {{ reminderDescription }}
+                </div>
+                @endif
+            </div>
+
+            <p>Don't let this important reminder slip by! Take action now to stay on top of your tasks.</p>
+
+            <a href="{{ appUrl }}/reminders" class="cta-button">
+                View All Reminders →
+            </a>
+        </div>
+
+        <div class="footer">
+            <p>
+                This email was sent by <strong>{{ appName }}</strong><br>
+                <a href="{{ appUrl }}">Visit {{ appName }}</a> |
+                <a href="{{ appUrl }}/reminders">Manage Reminders</a>
+            </p>
+            <p style="margin-top: 15px; color: #999;">
+                This is an automated reminder email. Please do not reply to this message.
+            </p>
+        </div>
+    </div>
+</body>
+</html>

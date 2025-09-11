@@ -2,7 +2,7 @@ import { HttpContext } from '@adonisjs/core/http'
 import Todo from '#models/todo'
 import { fileURLToPath } from 'url';
 import path from 'path'
-import { ImageValidator, TodoIdValidator, CreateTodoValidator, UpdateTodoValidator } from '../validators/todo.js'
+import {todoSchema, todoIdSchema, TodoImageValidator, updateTodoSchema} from '../../inertia/schemas/todoSchema.js'
 
 import { TodoPriority } from '../enums/TodoPriority.js'
 import { TodoStatus } from '../enums/TodoStatus.js'
@@ -23,9 +23,16 @@ export default class TodosController {
 
   async show({ params, inertia, response, auth }: HttpContext) {
     try {
-      const validatedParams = TodoIdValidator.parse({
-        id: parseInt(params.id)
+      const validatedParams = todoIdSchema.safeParse({
+        id: params.id
       })
+
+      if (!validatedParams.success) {
+        return response.badRequest({
+          error: 'Invalid ID',
+          details: validatedParams.error.issues
+        })
+      }
       const user = auth.getUserOrFail()
       const todo = await Todo.query()
         .where('id', validatedParams.id)
@@ -41,9 +48,17 @@ export default class TodosController {
 
   async store({ request, response, auth }: HttpContext) {
     try {
-      console.log('Request data:', request.all())
       const body = request.all()
-      const data = CreateTodoValidator.parse(body)
+      const validationResult = todoSchema.safeParse(body)
+
+      if (!validationResult.success) {
+        return response.badRequest({
+          error: 'Validation failed',
+          details: validationResult.error.issues
+        })
+      }
+
+      const data = validationResult.data
       const parsedLabels = this.parseLabels(data.labels)
 
       const user = auth.getUserOrFail()
@@ -80,52 +95,71 @@ export default class TodosController {
 
   async update({ params, request, response, auth }: HttpContext) {
     try {
-
-      const validatedParams = TodoIdValidator.parse({
-        id: parseInt(params.id)
+      const validatedParams = todoIdSchema.safeParse({
+        id: params.id
       })
+
+      if (!validatedParams.success) {
+        return response.badRequest({
+          error: 'Invalid ID',
+          details: validatedParams.error.issues
+        })
+      }
 
       const body = request.all()
       console.log('Update request body:', body)
 
-      const validatedData = UpdateTodoValidator.parse(body)
+      const validatedData = updateTodoSchema.safeParse(body)
+
+      if (!validatedData.success) {
+        return response.badRequest({
+          error: 'Validation failed',
+          details: validatedData.error.issues
+        })
+      }
 
       const user = auth.getUserOrFail()
 
       const todo = await Todo.query()
-        .where('id', validatedParams.id)
+        .where('id', validatedParams.data.id)
         .where('userId', user.id)
         .firstOrFail()
 
       // Only update fields that were provided and validated
       const updateData: any = {}
-      if (validatedData.title !== undefined) updateData.title = validatedData.title
-      if (validatedData.content !== undefined) updateData.content = validatedData.content
-      if (validatedData.status !== undefined) updateData.status = validatedData.status
-      if (validatedData.labels !== undefined) updateData.labels = this.parseLabels(validatedData.labels)
-      if (validatedData.imageUrl !== undefined) updateData.imageUrl = validatedData.imageUrl
-      if (validatedData.priority !== undefined) updateData.priority = validatedData.priority
-
-      updateData.userId = user.id
+      if (validatedData.data.title !== undefined) updateData.title = validatedData.data.title
+      if (validatedData.data.content !== undefined) updateData.content = validatedData.data.content
+      if (validatedData.data.status !== undefined) updateData.status = validatedData.data.status.toLowerCase()
+      if (validatedData.data.labels !== undefined) updateData.labels = this.parseLabels(validatedData.data.labels)
+      if (validatedData.data.imageUrl !== undefined) updateData.imageUrl = validatedData.data.imageUrl
+      if (validatedData.data.priority !== undefined) updateData.priority = validatedData.data.priority.toLowerCase()
 
       todo.merge(updateData)
       await todo.save()
 
       return response.json({ todo })
     } catch (error) {
-      console.log('Update error:', error)
-      return response.badRequest({ error: error })
+      console.error('Update error:', error)
+      return response.badRequest({ error: 'Failed to update todo' })
     }
   }
 
   async destroy({ params, response, auth }: HttpContext) {
     try {
-      const validatedParams = TodoIdValidator.parse({
-        id: parseInt(params.id)
+      const validatedParams = todoIdSchema.safeParse({
+        id: params.id
       })
+
+      if (!validatedParams.success) {
+        return response.badRequest({
+          error: 'Invalid ID',
+          details: validatedParams.error.issues
+        })
+      }
+
       const user = auth.getUserOrFail()
       const todo = await Todo.query()
-        .where('id', validatedParams.id)
+        .where('id', validatedParams.data.id)
         .where('userId', user.id)
         .firstOrFail()
 
@@ -144,7 +178,7 @@ export default class TodosController {
         return response.badRequest({ error: 'No image file provided' })
       }
 
-       const validationResult = ImageValidator.safeParse({
+       const validationResult = TodoImageValidator.safeParse({
         extname: imageFile.extname,
         size: imageFile.size,
       })
