@@ -6,19 +6,25 @@ import { hydrateRoot } from 'react-dom/client'
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from '@adonisjs/inertia/helpers'
 import * as Sentry from "@sentry/react";
+import ErrorBoundary from '../components/ErrorBoundary';
+import { setupGlobalErrorHandlers } from '../lib/global-error-handler';
+
 const appName = import.meta.env.VITE_APP_NAME || 'AdonisJS'
 
+// Initialize Sentry
 Sentry.init({ 
   dsn: import.meta.env.VITE_SENTRY_DSN,
-  sendDefaultPii: true
- });
- // Capture an exception
-try {
-  console.log('About to throw an error');
-  throw new Error("Test error 2");
-} catch (e) {
-  Sentry.captureException(e);
-}
+  environment: import.meta.env.NODE_ENV || 'development',
+  sendDefaultPii: true,
+  tracesSampleRate: 1.0,
+});
+
+// Make Sentry available globally for error boundary
+// @ts-ignore
+window.Sentry = Sentry;
+
+// Set up global error handlers with SweetAlert
+setupGlobalErrorHandlers();
 
 createInertiaApp({
   progress: { color: '#5468FF' },
@@ -32,9 +38,11 @@ createInertiaApp({
     )
   },
 
-  setup({ el, App, props }) {
-    
-    hydrateRoot(el, <App {...props} />)
-    
+  setup({ el, App, props }: any) {
+    hydrateRoot(el, (
+      <ErrorBoundary>
+        <App {...props} />
+      </ErrorBoundary>
+    ))
   },
 });
