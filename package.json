@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test:frontend": "jest",
     "test:backend": "c8 --config .c8rc.json node ace test unit",
+    "test:mocks": "c8 --config .c8rc.json node ace test mocks",
     "test": "react-scripts test --transformIgnorePatterns \"node_modules/(?!@toolz/allow-react)/\" --env=jsdom"
   },
   "imports": {
@@ -43,7 +44,7 @@
     "@babel/preset-env": "^7.28.3",
     "@babel/preset-react": "^7.27.1",
     "@babel/preset-typescript": "^7.27.1",
-    "@japa/api-client": "^3.0.3",
+    "@japa/api-client": "^3.1.0",
     "@japa/assert": "^4.0.1",
     "@japa/browser-client": "^2.1.1",
     "@japa/expect": "^3.0.3",

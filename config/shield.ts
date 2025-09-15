@@ -21,7 +21,9 @@ const shieldConfig = defineConfig({
       '/api/auth/jwt/signup',
       '/api/auth/jwt/login',
       '/api/auth/jwt/logout',
-      '/api/todos/*'
+      '/api/todos',
+      '/api/todos/*',
+      '/api/todos/**',
     ],
     enableXsrfCookie: true,
     methods: ['POST', 'PUT', 'PATCH', 'DELETE'],
