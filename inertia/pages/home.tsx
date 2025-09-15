@@ -28,6 +28,16 @@ export default function Home() {
             {/* Weather Widget */}
             <WeatherWidget className="w-full max-w-md mb-8" />
 
+            {/* Error Testing Link (Development Only) */}
+            {process.env.NODE_ENV === 'development' && (
+              <Link 
+                href="/error-test"
+                className="bg-red-600 hover:bg-red-700 text-white font-medium py-3 px-6 rounded-lg mb-8 inline-block"
+              >
+                Test Error Handling
+              </Link>
+            )}
+
             {/* Cards Container */}
             <div className="grid grid-cols-2 md:grid-cols-2 gap-8 max-w-4xl w-full">
               {/* Notes Card */}

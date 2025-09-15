@@ -10,6 +10,7 @@
 |
 */
 import { expect } from '@japa/expect'
+import { assert } from '@japa/assert'
 import { apiClient } from '@japa/api-client'
 
 process.env.NODE_ENV = 'test'
@@ -58,7 +59,8 @@ new Ignitor(APP_ROOT, { importer: IMPORTER })
       },
       plugins: [
         expect(),
-        apiClient('https://localhost:3333'),
+        assert(),
+        apiClient('http://localhost:3333'),
         browserClient({
           runInSuites: ['browser'],
         }),

@@ -14,6 +14,7 @@ const AuthController = () => import('#controllers/auth_controller')
 const GoogleAuthController = () => import('#controllers/google_auth_controller')
 const WeatherController = () => import('#controllers/weather_controller')
 const GiphyController = () => import('#controllers/giphy_controller')
+const ErrorTestController = () => import('#controllers/error_test_controller')
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
 
@@ -110,3 +111,7 @@ router.group(() => {
 })
   .prefix('/api/giphy')
   .middleware([middleware.auth()])
+  
+  
+// ---------------- Error Testing Route
+router.get('/error-test', [ErrorTestController, 'index'])
