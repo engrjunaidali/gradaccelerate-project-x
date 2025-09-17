@@ -15,9 +15,19 @@ const __dirname = path.dirname(__filename);
 export default class TodosController {
   async index({ response, auth }: HttpContext) {
     const user = auth.getUserOrFail()
-    const todos = await Todo.query()
+
+    // Create a timeout promise that rejects after 5 seconds
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => {
+        reject(new Error('Request timeout: The operation took too long to complete'))
+      }, 5000) // 5 second timeout
+    })
+
+    const queryPromise = Todo.query()
       .where('userId', user.id)
       .orderBy('created_at', 'desc')
+
+    const todos = await Promise.race([queryPromise, timeoutPromise])
     return response.json({ todos })
   }
 
