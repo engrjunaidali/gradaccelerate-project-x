@@ -120,6 +120,7 @@ export default function Index() {
               <Button
                 whileTap={{ scale: 0.95 }}
                 onClick={toggleForm}
+                data-testid="toggle-todo-form"
                 className="text-white border-white border rounded-full shadow-lg hover:bg-[#0A74FF] transition-colors duration-200"
               >
                 {isFormVisible ? <XIcon size={20} /> : <PlusIcon size={20} />}

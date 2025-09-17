@@ -19,6 +19,8 @@ import { TodoStatusColors } from "../../constants/TodoStatusColors"
 
 import useAppStore from '../../stores/store';
 
+import {showSuccessAlert} from '#inertia/lib/alert-utils'
+
 export default function TodoForm() {
   const {
     processing,
@@ -94,8 +96,10 @@ export default function TodoForm() {
     try {
       if (isEditing && editingTodo) {
         await updateTodo(editingTodo.id, data);
+        showSuccessAlert('Todo updated successfully!');
       } else {
         await createTodo(data);
+        showSuccessAlert('Todo created successfully!');
       }
 
       // Clear form after successful submission
