@@ -9,8 +9,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "../../inertia/components/ui.js/card"
-import { Button } from "../../inertia/components/ui.js/button"
+} from "../../inertia/components/ui.js/card.js"
+import { Button } from "../../inertia/components/ui.js/button.js"
 
 interface WeatherData {
   temperature: number
