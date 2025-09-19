@@ -116,7 +116,7 @@
     "zustand": "^5.0.7"
   },
   "optionalDependencies": {
-    "@rollup/rollup-linux-x64-gnu": "4.50.2"
+    "@rollup/rollup-linux-x64-gnu": "*"
   },
   "hotHook": {
     "boundaries": [
