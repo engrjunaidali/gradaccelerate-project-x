@@ -33,6 +33,10 @@ new Ignitor(APP_ROOT, { importer: IMPORTER })
   .tap((app) => {
     app.booting(async () => {
       await import('#start/env')
+      // Ensure the server binds to all interfaces in production
+      if (process.env.NODE_ENV === 'production' && !process.env.HOST) {
+        process.env.HOST = '0.0.0.0'
+      }
     })
     app.listen('SIGTERM', () => app.terminate())
     app.listenIf(app.managedByPm2, 'SIGINT', () => app.terminate())
